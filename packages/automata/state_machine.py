@@ -128,9 +128,6 @@ class StateMachine(metaclass=MetaStateMachine):
             self.exit()
             self.on_reject(exc)
             return False
-        except:
-            self.exit()
-            raise
 
 if __name__ == '__main__':
 
