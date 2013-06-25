@@ -69,11 +69,11 @@ Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or 
         def final(self):
             raise Accept()
 
-    from io import StringIO
 
 Sample run:
 
 <pre>
+>>> from io import StringIO
 >>> test = PsAndQs(StringIO("pppqqqqq"))
 >>> test.run()
 Accepted!
