@@ -5,7 +5,7 @@ Python framework for automata of various sorts.
 
 I'm just getting started, so bear with me.
 
-Currently avoilable modules are:
+Currently available modules are:
 
 <table>
   <tr>
