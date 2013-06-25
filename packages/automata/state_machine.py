@@ -32,12 +32,20 @@ class StateMachine(metaclass=MetaStateMachine):
     # State forwards
     def enter(self):
         """Call the current state's on_enter handler."""
+        self.on_enter_state()
         method = self.state.on_enter
         return method(self)
+    def on_enter_state(self):
+        pass
+
     def exit(self):
         """Call the current state's on_exit handler."""
+        self.on_exit_state()
         method = self.state.on_exit
         return method(self)
+    def on_exit_state(self):
+        pass
+
     def no_transition(self):
         """Call the current state's no_transition handler."""
         method = self.state.no_transition
