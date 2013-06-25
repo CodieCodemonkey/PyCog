@@ -32,6 +32,9 @@ class StateMachine(metaclass=MetaStateMachine):
     # State forwards
     def enter(self):
         """Call the current state's on_enter handler."""
+
+        if hasattr(self, '_bt_on_enter_state'): self._bt_on_enter_state()
+
         self.on_enter_state()
         method = self.state.on_enter
         return method(self)
@@ -40,6 +43,9 @@ class StateMachine(metaclass=MetaStateMachine):
 
     def exit(self):
         """Call the current state's on_exit handler."""
+
+        if hasattr(self, '_bt_exit_state'): self._bt_exit_state()
+
         self.on_exit_state()
         method = self.state.on_exit
         return method(self)
@@ -101,24 +107,38 @@ class StateMachine(metaclass=MetaStateMachine):
         try:
             self.enter()
             while True:
-                while self.while_active(): pass
+                try:
+                    while self.while_active(): pass
+                except Backtrack as exc:
+                    if not self._backtrack():
+                        self.on_exhausted()
 
-                # Transitioning
+                        raise Reject("Backtracking exhausted, "
+                                     "nothing was accepted or rejected.")
+                else:
+                    # Transitioning
 
-                allowed_transitions = []
-                for transition, next_state in self.state._transitions:
-                    if transition(self):
-                        allowed_transitions.append(next_state)
+                    allowed_transitions = []
+                    for transition, next_state in self.state._transitions:
+                        if transition(self):
+                            allowed_transitions.append(next_state)
 
-                self.exit()
-                if len(allowed_transitions) == 0:
-                    self.no_transition()
-                    msg = "Cannot transition from state {st}"
-                    raise Reject(msg.format(st = self.state_name))
-                next_state = self.select_transition(allowed_transitions)
-                self.on_transition(next_state)
-                self.state_name = next_state
-                self.enter()
+                    self.exit()
+                    if len(allowed_transitions) == 0:
+                        self.no_transition()
+                        msg = "Cannot transition from state {st}"
+                        raise Reject(msg.format(st = self.state_name))
+
+                    if hasattr(self, '_bt_select_transition'):
+                        next_state = self._bt_select_transition(
+                            allowed_transitions)
+                    else:
+                        next_state = self.select_transition(
+                            allowed_transitions)
+
+                    self.on_transition(next_state)
+                    self.state_name = next_state
+                    self.enter()
 
         except Accept as exc:
             self.exit()
