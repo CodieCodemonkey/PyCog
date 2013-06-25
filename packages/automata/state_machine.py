@@ -1,22 +1,18 @@
 """State machine"""
 
-from state import State, state
+from state import *
 from exceptions import *
 
 class MetaStateMachine(type):
-    """Builds a tables of states and transitions."""
+    """Builds a table of states and transitions."""
 
     def __new__(cls, name, bases, namespace, **kwd):
         state_map = dict()
-        transition_map = dict()
 
         for name, entity in namespace.items():
             if type(entity) is State:
                 state_map[entity.name] = entity
                 continue
-            transition = getattr(entity, '_transition', None)
-            if transition != None:
-                transition_map[transition] = entity
 
         namespace['_state_map'] = state_map
 
