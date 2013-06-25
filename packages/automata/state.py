@@ -15,7 +15,11 @@ class State:
         self.on_exit = _null_handler
 
     def transition(self, target_state):
-        """Transition test decorator"""
+        """
+        Transition test decorator
+
+        target_state -- Name of the target state
+        """
 
         def _transition_setter(method):
             nonlocal self, target_state
@@ -24,6 +28,15 @@ class State:
             return self
 
         return _transition_setter
+
+    def copy_transitions(self, state):
+        have = set([s for (_, s) in self._transitions])
+        for (m, s) in state._transitions:
+            if s not in have:
+                self._transitions.append((m, s))
+
+    def add_transition(self, state_name, predicate):
+        self._transitions.append((predicate, state_name))
 
     def no_transition(self, method):
         """"No transition" event handler decorator"""
@@ -36,7 +49,7 @@ class State:
         return self
 
     def exit(self, method):
-        """Enter handler decorator"""
+        """Exit handler decorator"""
         self.on_exit = method
         return self
 
