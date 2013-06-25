@@ -55,6 +55,9 @@ class StateMachine(metaclass=MetaStateMachine):
         method = self.state.while_active
         return method(self)
 
+    def add_state(self, state):
+        self._state_map[state.name] = state
+
     def get_state_from_name(self, name):
         return self._state_map[name]
 
