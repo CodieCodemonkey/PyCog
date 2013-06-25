@@ -1,14 +1,7 @@
 """State machine"""
 
 from state import State, state
-
-class Accept(Exception):
-    """Accept the input stream."""
-    pass
-
-class Reject(Exception):
-    """Reject the input stream."""
-    pass
+from exceptions import *
 
 class MetaStateMachine(type):
     """Builds a tables of states and transitions."""
