@@ -2,6 +2,7 @@
 *.vim
 
 # Python artifacts
+*.py[cod]
 __pycache__
 
 # Compress files
