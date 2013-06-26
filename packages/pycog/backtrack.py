@@ -44,8 +44,6 @@ class Track:
             del self.occurrences[0:l - self.max_occ]
 
     def last(self):
-        if len(self.occurrences) == 0:
-            import pdb;pdb.set_trace()
         return self.occurrences[-1]
 
     def __iter__(self):
@@ -131,7 +129,7 @@ class Backtracking:
 
 if __name__ == '__main__':
 
-    from state_machine import *
+    from statemachine import *
     from exceptions import *
 
     class MinimalChange(StateMachine, Backtracking):
