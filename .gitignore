@@ -1,0 +1,16 @@
+# Editor scripts
+*.vim
+
+# Python artifacts
+__pycache__
+
+# Compress files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
