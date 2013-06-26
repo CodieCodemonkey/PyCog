@@ -1,7 +1,9 @@
 PyCog
 =====
 
-Python framework for automata of various sorts.
+Python framework for abstract machines of various sorts.
+
+PyCog is released under the *GNU LESSER GENERAL PUBLIC LICENSE version 3*.  See LICENSE.md.
 
 I'm just getting started, so bear with me.
 
