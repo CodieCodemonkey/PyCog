@@ -1,11 +1,24 @@
 PyCog
 =====
 
-Python framework for abstract machines of various sorts.
+PyCog is a Python framework for abstract machines of various sorts.
 
-PyCog is released under the *GNU LESSER GENERAL PUBLIC LICENSE version 3*.  See LICENSE.md.
+Currently the only developer is me, Ken Hill ([codiecodemonkey.com/contact.html][codiecodemonkey.com/contact.html]).  I'm just getting started on PyCog, so bear with me.
 
-I'm just getting started, so bear with me.
+These principles are be kept in mind in designing and extending PyCog:
+
+1. Avoid reinvention, especially when quality solutions are already available.  Instead PyCog development will provide adaptors whenever possible so that other packages play well with PyCog and together.
+2. Focus on the aesthetics of client's code.  It should be easy to write clear, elegant code using PyCog.
+3. Separate algorithms from specific data structures where possible.  Instead, PyCog will focus on well-defined and documented "protocols" in the Pythonic sense.
+4. Provide new solutions (instead of adapting existing ones) when necessitated by principles 1-3.
+
+
+## License
+
+PyCog is released under the *GNU LESSER GENERAL PUBLIC LICENSE version 3*.  See `LICENSE.md`.
+
+
+## Modules
 
 Currently available modules are:
 
@@ -23,7 +36,7 @@ Currently available modules are:
   </tr>
 </table>
 
-# Examples
+## Examples
 
 Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or more 'q's) looks like this:
 
@@ -70,7 +83,6 @@ Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or 
         @state('final')
         def final(self):
             raise Accept()
-
 
 Sample run:
 
