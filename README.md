@@ -3,7 +3,7 @@ PyCog
 
 PyCog is a Python framework for abstract machines of various sorts.
 
-Currently the only developer is me, Ken Hill ([codiecodemonkey.com/contact.html][codiecodemonkey.com/contact.html]).  I'm just getting started on PyCog, so bear with me.
+Currently the only developer is me, Ken Hill ([codiecodemonkey.com/contact.html](codiecodemonkey.com/contact.html)).  I'm just getting started on PyCog, so bear with me.
 
 These principles are be kept in mind in designing and extending PyCog:
 
