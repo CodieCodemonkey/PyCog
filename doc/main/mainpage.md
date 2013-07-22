@@ -3,7 +3,7 @@ PyCog {#mainpage}
 
 PyCog is a Python framework for abstract machines of various sorts.
 
-Currently the only developer is me, Ken Hill (codiecodemonkey.com/contact.html).  I'm just getting started on PyCog, so bear with me.
+Currently the only developer is me, Codie (codiecodemonkey.com/contact.html).  I'm just getting started on PyCog, so bear with me.
 
 These principles are be kept in mind in designing and extending PyCog:
 
@@ -14,7 +14,7 @@ These principles are be kept in mind in designing and extending PyCog:
 
 ## License
 
-PyCog is released under the [*GNU LESSER GENERAL PUBLIC LICENSE version 3*](http://www.gnu.org/licenses/lgpl-3.0-standalone.html).
+PyCog is released under the [GNU LESSER GENERAL PUBLIC LICENSE version 3](http://www.gnu.org/licenses/lgpl-3.0-standalone.html).
 
 
 ## Modules
