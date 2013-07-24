@@ -1,7 +1,7 @@
 """State machine"""
 
-from state import *
-from exceptions import *
+from pycog.state import *
+from pycog.exceptions import *
 
 class MetaStateMachine(type):
     """Builds a table of states and transitions."""
@@ -113,8 +113,7 @@ class StateMachine(metaclass=MetaStateMachine):
                     if not self._backtrack():
                         self.on_exhausted()
 
-                        raise Reject("Backtracking exhausted, "
-                                     "nothing was accepted or rejected.")
+                        raise Reject("Backtracking exhausted.")
                 else:
                     # Transitioning
 
@@ -123,12 +122,21 @@ class StateMachine(metaclass=MetaStateMachine):
                         if transition(self):
                             allowed_transitions.append(next_state)
 
-                    self.exit()
                     if len(allowed_transitions) == 0:
-                        self.no_transition()
-                        msg = "Cannot transition from state {st}"
-                        raise Reject(msg.format(st = self.state_name))
+                        if hasattr(self, "_backtrack"):
+                            if not self._backtrack():
+                                self.on_exhausted()
 
+                                raise Reject("Backtracking exhausted.")
+                            else:
+                                continue
+                        else:
+                            self.exit()
+                            self.no_transition()
+                            msg = "Cannot transition from state {st}"
+                            raise Reject(msg.format(st = self.state_name))
+
+                    self.exit()
                     if hasattr(self, '_bt_select_transition'):
                         next_state = self._bt_select_transition(
                             allowed_transitions)
