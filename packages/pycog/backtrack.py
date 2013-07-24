@@ -114,10 +114,11 @@ class Backtracking:
     def _bt_select_transition(self, allowed_transitions):
         """
         Captures the allowed transitions, and delegates to select_transition()
-        to choose among them.  Because state_machine calls this instead of
-        select_transitions directly (if _bt_select_transition is present),
-        overloading select_transitions() does not require a super-message to
-        Backtracking.
+        to choose among them.
+        
+        Because state_machine calls this instead of select_transitions directly
+        (if _bt_select_transition is present), overloading select_transitions()
+        does not require a super-message to Backtracking.
         """
         occ = self.track.last()
         occ.set_transitions(allowed_transitions)
