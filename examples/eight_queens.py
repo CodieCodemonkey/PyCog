@@ -1,7 +1,8 @@
 """Backtracking example: 8-queens problem."""
 
-import sys
-sys.path.append("../packages/")
+if __name__ == "__main__":
+    import sys
+    sys.path.append("../packages/")
 
 from pycog.statemachine import *
 from pycog.exceptions import *
@@ -12,7 +13,7 @@ from pycog.backtrack import *
 # The states are ordered pairs (row, col) for each of the 64 squares on the
 # board.  The state has two possible values: False if there is no queen on the
 # square, True otherwise.  When we enter a state we record the coordinates of
-# the assocated square as a queen location.  When we backtrack we erase that
+# the associated square as a queen location.  When we backtrack we erase that
 # record.
 #
 # We could allow a transition from any square to any other one, but we'll use
@@ -26,36 +27,57 @@ from pycog.backtrack import *
 # as the candidate square.  There is no need to check for a queen in the same
 # column because the choice of transitions precludes that possibility.
 
-def transition_test(next_square):
-    """Create a transition test for square (next_row, next_col)"""
+def transition_test(fsm, cur_square, next_square):
+    """
+    Transition test
 
-    def _transition_test(self):
-        nonlocal next_square
+    Check that the next square doesn't violate the "no queen attacking" rule by
+    looking at the rows and diagonals.  The transition strategy (see
+    EightQueens) makes checking columns unnecessary.
+    """
+    next_row, next_col = next_square
 
-        next_row, next_col = next_square
+    # check the row
+    for col in range(next_col):
+        if (next_row, col) in fsm.queens:
+            return False
 
-        # check the row
-        for col in range(next_col):
-            if (next_row, col) in self.queens:
-                return False
+    # check the two diagonals so far, from (next_row, next_col)
+    diag_len = min(next_row, next_col)
+    for step in range(diag_len):
+        if (next_row - step - 1, next_col - step - 1) in fsm.queens:
+            return False
 
-        # check the two diagonals so far, from (next_row, next_col)
-        diag_len = min(next_row, next_col)
-        for step in range(diag_len):
-            if (next_row - step - 1, next_col - step - 1) in self.queens:
-                return False
+    diag_len = min(7 - next_row, next_col)
+    for step in range(diag_len):
+        if (next_row + step + 1, next_col - step - 1) in fsm.queens:
+            return False
 
-        diag_len = min(7 - next_row, next_col)
-        for step in range(diag_len):
-            if (next_row + step + 1, next_col - step - 1) in self.queens:
-                return False
-
-        return True
-    return _transition_test
+    return True
 
 class EightQueens(StateMachine, Backtracking):
     """
     Solve the 8-queens problem using backtracking.
+
+    State Strategy:
+        The state names are 'init', 'final' and the coordinates (row, col) on
+        the chessboard.  There is no state data, the names contain all the
+        information we need.
+
+    Transition Strategy:
+        'init' transitions to the first 4 rows of column 0.  We don't bother
+        transitioning to the last 4 rows because by symmetry if there is a
+        solution with a queen in the last 4 squares of the first column, then
+        one can flip the board to get a solution in the first 4 rows.
+
+        Each square in any given column transitions to all the squares of the
+        next column, except for the squares on the same row or diagonal.
+
+        All squares of the last column transition to 'final'.
+
+    Attributes:
+        queens: Set of (row, col) coordinates, each being the position of one
+            of the eight queens.
     """
 
     def __init__(self):
@@ -64,43 +86,50 @@ class EightQueens(StateMachine, Backtracking):
 
         self.queens = set()
 
-        init_state = self.get_state_from_name('init')
-
         # Add states for each square
         for row in range(8):
             for col in range(8):
-                state = State((row, col), EightQueens.place_queen)
-                self.add_state(state)
+                self.add_state((row, col), activity=EightQueens.place_queen)
 
-                # Add transitions to the next column
+        # Add transitions
+        for row in range(8):
+            # Transitions from 'init' and to 'final'.
+            if row < 4: self.add_transition('init', (row, 0))
+            self.add_transition((row, 7), 'final')
+
+            for col in range(8):
                 for next_row in range(8):
-                    if row == next_row: continue
-                    state.add_transition((next_row, col + 1),
-                                         transition_test((next_row, col + 1)))
+                    # Short circuit impossible transitions
+                    if next_row == row: continue
+                    if next_row == row + 1: continue
+                    if next_row == row - 1: continue
 
-                # "init" transitions to the squares of the first column
-                if col == 0:
-                    init_state.add_transition((row, col), lambda self: True)
-
-                # The squares in the last column transition to final
-                if col == 7:
-                    state.add_transition('final', lambda self: True)
+                    self.add_transition((row, col), (next_row, col + 1),
+                                         transition_test)
 
     def place_queen(self):
         """In a square state, meaning we place a queen on this square."""
-        self.queens.add(self.state_name)
-        self.draw()
+        self.queens.add(self.current_state)
 
     @state("init")
-    def init(self): pass
+    def init(self):
+        """
+        Starting state for our search.
+
+        This state is needed so that we have something to backtrack to in order
+        to choose a different first column queen.  It isn't absolutely
+        necessary since we know there is a solution with a queen in the first
+        row of the first column.
+        """
+        pass
 
     @state("final")
     def final(self):
         """A solution is found, draw the board."""
-        self.draw()
         raise Accept()
 
     def draw(self):
+        """Draw the board as text."""
         sys.stdout.write('\n')
         for row in range(8):
             for col in range(8):
@@ -112,12 +141,19 @@ class EightQueens(StateMachine, Backtracking):
 
     def on_backtrack(self, occ):
         """Undo the placing of a queen in response to backtracking."""
-        if occ.state_name not in ['init', 'final']:
-            self.queens.remove(self.state_name)
+        if occ.state not in ['init', 'final']:
+            self.queens.remove(self.current_state)
 
     def on_exhausted(self):
-        print("No solution found!")
+        """
+        Handle the case where no solution can be found.
 
-solver = EightQueens()
-solver.run()
+        This should never happen.
+        """
+        raise Exception("No solution found!")
+
+if __name__ == "__main__":
+    solver = EightQueens()
+    solver.run()
+    solver.draw()
 
