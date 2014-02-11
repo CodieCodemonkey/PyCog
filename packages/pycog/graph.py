@@ -29,7 +29,7 @@ class Graph:
             An iterator over the successor vertices.
 
         Raises:
-            KeyError if the vertex is not in the graph.
+            KeyError
         """
         return self._succ[v].__iter__()
 
@@ -44,7 +44,7 @@ class Graph:
             An iterator over the preceding vertices.
 
         Raises:
-            KeyError if the vertex is not in the graph.
+            KeyError
         """
         return self._pred[v].__iter__()
 
@@ -89,7 +89,7 @@ class Graph:
             succ: successor vertex.  The edge is traversed to this vertex.
 
         Raises:
-            KeyError if either vertex is not in the graph.
+            KeyError
         """
         self._succ[pred].add(succ)
         self._pred[succ].add(pred)
@@ -103,7 +103,7 @@ class Graph:
             succ: successor vertex.  The edge is traversed to this vertex.
 
         Raises:
-            KeyError if either vertex is not in the graph.
+            KeyError
         """
         self._succ[pred].remove(succ)
         self._pred[succ].remove(pred)
@@ -198,7 +198,7 @@ class GraphWrapper:
             An iterator over the successor vertices.
 
         Raises:
-            KeyError if the vertex is not in the graph.
+            KeyError
         """
         return self._graph.gp_succ(v)
 
@@ -213,7 +213,7 @@ class GraphWrapper:
             An iterator over the preceding vertices.
 
         Raises:
-            KeyError if the vertex is not in the graph.
+            KeyError
         """
         def pred_gen(v):
             """Brute force generation of predecessors."""
@@ -263,7 +263,7 @@ class GraphWrapper:
             succ: successor vertex.  The edge is traversed to this vertex.
 
         Raises:
-            KeyError if either vertex is not in the graph.
+            KeyError
         """
         return self._graph.gp_connect(pred, succ)
 
@@ -276,7 +276,7 @@ class GraphWrapper:
             succ: successor vertex.  The edge is traversed to this vertex.
 
         Raises:
-            KeyError if either vertex is not in the graph.
+            KeyError
         """
         return self._graph.gp_disconnect(pred, succ)
 

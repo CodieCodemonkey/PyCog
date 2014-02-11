@@ -24,11 +24,9 @@ class StateOccurrence:
 
 class Track:
     """
-    Sequence of StateOccurrence instances representing the sequence of states
-    visited by the state machine.
+    Sequence of states visited by the state machine.
 
-
-    This is a stack, with a bound on its depth.
+    This is a stack of StateOccurrence objects, with a bound on its depth.
     """
     def __init__(self, max_occ = -1):
         self.occurrences = []
@@ -58,7 +56,9 @@ class Track:
         return ''.join(itertools.islice(chainer, 2*len(self.occurrences) - 1))
 
 class Backtracking:
-    """Mix-in to implement backtracking in a state machine."""
+    """
+    Mix-in to implement backtracking in a state machine.
+    """
     def __init__(self, max_occ = -1):
         self.track = Track(max_occ)
 
@@ -67,18 +67,18 @@ class Backtracking:
 
     def make_occurrence(self):
         """
-        Create an occurrence from the current state.  Allows Backtracking
-        derived classes to use their own occurrence data.
+        Create an occurrence from the current state.
+        
+        Allows Backtracking derived classes to use their own occurrence data.
         """
         return StateOccurrence(self.current_state)
 
     def _backtrack(self):
         """
-        Backtrack, reentering the state after the most recent unexplored
-        transition.
+        Backtrack, reentering the state after the most recent unexplored transition.
 
-        Returns True if an alternate path was found, False is all paths are
-        exhausted.
+        Returns:
+            True if an alternate path was found, False is all paths are exhausted.
         """
 
         self._exit()
@@ -104,14 +104,17 @@ class Backtracking:
 
     def on_backtrack(self, occ):
         """
-        Notification that the specified StateOccurrence has been backtracked,
-        and is about to be deleted.  This provides a chance to synchronize
-        application data.
+        Backtrack notification.
+
+        The specified StateOccurrence has been backtracked, and is about to be
+        deleted.  This provides a chance to synchronize application data.
         """
         pass
 
     def _bt_select_transition(self, allowed_transitions):
         """
+        Backtracking select transition hook.
+
         Captures the allowed transitions, and delegates to select_transition()
         to choose among them.
         
