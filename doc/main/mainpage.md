@@ -26,11 +26,11 @@ Currently available modules are:
     <th>Module</th><th>Description</th>
   </tr>
   <tr>
-    <td>automata.statemachine</td>
+    <td>@ref statemachine</td>
     <td>Implements a state machine class.  Includes support for decorations for state activities and transitions.</td>
   </tr>
   <tr>
-    <td>automata.backtrack</td>
+    <td>@ref backtrack</td>
     <td>Provides a mix-in class for easy backtracking over the state sequence.</td>
   </tr>
 </table>
@@ -41,65 +41,73 @@ Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or 
 
     class PsAndQs(StateMachine):
         def __init__(self, stream):
-            StateMachine.__init__(self, 'init')
+            super().__init__('p')
 
             self.stream = stream
-            self.symbol = ''
+            self._symbol = ''
+            self.pos = 0
+            self.advance()
+            self.pos = 0
+            self.error_msg = ''
 
-        # Stream interface, eventually will be part of sequence NFAs.
+        @property
+        def symbol(self):
+            """Return the current symbol"""
+            return self._symbol
         def advance(self):
-            self.symbol = self.stream.read(1)
-            return self.symbol
-
-        def on_reject(self):
-            print("Rejected!")
-        def on_accept(self):
-            print("Accepted!")
-
-        @state('init')
-        def init(self): pass
-        @init.transition('p')
-        def init.self): return self.symbol == 'p'
-        @init.transition('q')
-        def init.self): return self.symbol == 'q'
-        @init.transition('final')
-        def init(self): return self.symbol == ''
+            """Advance the stream position"""
+            self._symbol = self.stream.read(1)
+            self.pos += 1
+            return self._symbol
 
         @state('p')
         def p(self):
-            while self.symbol == 'p': self.advance()
+            while self.symbol == 'p':
+                self.advance()
         @p.transition('q')
-        def p.self): return self.symbol == 'q'
+        def p(self):
+            return self.symbol == 'q'
         @p.transition('final')
-        def p(self): return self.symbol == ''
+        def p(self):
+            return self.symbol == ''
 
         @state('q')
         def q(self):
-            while self.symbol == 'q': self.advance()
+            while self.symbol == 'q':
+                self.advance()
         @q.transition('final')
-        def q(self): return self.symbol == ''
+        def q(self):
+            return self.symbol == ''
 
         @state('final')
         def final(self):
             raise Accept()
 
+        def no_transition(self, s_name):
+            raise Reject("Unexpected character")
+
+        def on_reject(self, exc):
+            self.error_msg = exc.args[0]
+
+
 Sample run:
 
-	>>> from io import StringIO
-	>>> test = PsAndQs(StringIO("pppqqqqq"))
-	>>> test.run()
-	Accepted!
-	>>> test = PsAndQs(StringIO("qqqqpppp"))
-	>>> test.run()
-	Rejected!
-	>>> test = PsAndQs(StringIO("rppppqqqq"))
-	>>> test.run()
-	Rejected!
-	>>> test = PsAndQs(StringIO("qqqqqqq"))
-	>>> test.run()
-	Accepted!
-	>>> test = PsAndQs(StringIO("pppppp"))
-	>>> test.run()
-	Accepted!
-
+<pre>
+>>> from io import StringIO
+>>> test = PsAndQs(StringIO("pppqqqqq"))
+>>> test.run()
+True
+>>> test = PsAndQs(StringIO("qqqqpppp"))
+>>> test.run()
+False
+>>> test = PsAndQs(StringIO("rppppqqqq"))
+>>> test.run()
+False
+>>> test = PsAndQs(StringIO("qqqqqqq"))
+>>> test.run()
+True
+>>> test = PsAndQs(StringIO("pppppp"))
+>>> test.run()
+True
+</pre>
 
