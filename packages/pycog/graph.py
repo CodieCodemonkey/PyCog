@@ -8,7 +8,9 @@ class Graph:
     http://pycog.codiecodemonkey.com/graph-protocol.html.
     """
 
-    def __init__(self):
+    def __init__(self, **kw_args):
+        super().__init__(**kw_args)
+
         self._vertices = set()
         self._pred = dict()
         self._succ = dict()

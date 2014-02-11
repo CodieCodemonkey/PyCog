@@ -1,7 +1,9 @@
 """Minimum change problem -- backtracking example."""
 
-import sys
-sys.path.append("../packages")
+if __name__ == "__main__":
+    import sys
+    import os.path as op
+    sys.path.append(op.abspath(op.join('..', 'packages')))
 
 from pycog.exceptions import *
 from pycog.statemachine import *
@@ -9,8 +11,7 @@ from pycog.backtrack import *
 
 class MinimalChange(StateMachine, Backtracking):
     def __init__(self, amount, coin_values):
-        StateMachine.__init__(self, 'init')
-        Backtracking.__init__(self)
+        super().__init__(initial='init')
 
         self.amount = amount
         self.accumulated = 0

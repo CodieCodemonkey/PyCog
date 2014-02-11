@@ -59,7 +59,8 @@ class Backtracking:
     """
     Mix-in to implement backtracking in a state machine.
     """
-    def __init__(self, max_occ = -1):
+    def __init__(self, max_occ = -1, **kw_args):
+        super().__init__(**kw_args)
         self.track = Track(max_occ)
 
     def _bt_on_enter_state(self):

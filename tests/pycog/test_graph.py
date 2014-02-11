@@ -1,10 +1,14 @@
 """Test pycog.graph"""
 
 import sys
+import os.path as op
 
 # Need this so we pick up the code base for which this is a test, not an
 # installed version.
-sys.path.append("../packages")
+
+package_dir = op.abspath(op.join('..', 'packages'))
+if package_dir not in sys.path:
+    sys.path.insert(0, package_dir)
 
 import unittest
 

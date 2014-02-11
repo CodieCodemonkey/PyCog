@@ -32,7 +32,8 @@ class state:
             ...
     """
 
-    def __init__(self, name, data=None):
+    def __init__(self, name, data=None, **kw_args):
+        super().__init__(**kw_args)
         self.record = _StateRecord(name, data)
 
     def __call__(self, activity):
@@ -73,7 +74,9 @@ class state:
 class StateMachine:
     """State machine framework"""
 
-    def __init__(self, initial):
+    def __init__(self, initial, **kw_args):
+
+        super().__init__(**kw_args)
 
         # Name of the current state, not the state itself.
         self._current_state = initial

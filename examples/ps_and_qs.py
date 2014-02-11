@@ -1,7 +1,9 @@
 """Example DFA to read the language (p^n)(q^m)"""
 
-import sys
-sys.path.append("../packages")
+if __name__ == "__main__":
+    import sys
+    import os.path as op
+    sys.path.append(op.abspath(op.join('..', 'packages')))
 
 from pycog.statemachine import *
 

@@ -2,7 +2,8 @@
 
 if __name__ == "__main__":
     import sys
-    sys.path.append("../packages/")
+    import os.path as op
+    sys.path.append(op.abspath(op.join('..', 'packages')))
 
 from pycog.statemachine import *
 from pycog.exceptions import *
@@ -81,8 +82,7 @@ class EightQueens(StateMachine, Backtracking):
     """
 
     def __init__(self):
-        StateMachine.__init__(self, 'init')
-        Backtracking.__init__(self)
+        super().__init__(initial='init')
 
         self.queens = set()
 
