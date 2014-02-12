@@ -29,3 +29,19 @@ class Backtrack(Exception):
     """
     pass
 
+class StateStackEmpty(Exception):
+    """
+    State stack is empty.
+    """
+    def __init__(self, msg = None):
+        if msg == None:
+            super().__init__("State stack is empty.")
+        else:
+            super().__init__(msg)
+
+class PopState(Exception):
+    """
+    Request popping the state stack (in a PushDown)
+    """
+    pass
+

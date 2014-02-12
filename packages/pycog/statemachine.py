@@ -303,21 +303,24 @@ class StateMachine:
 
             activity(self)
 
+    def _run(self):
+        self._enter()
+        while True:
+            try:
+                self._do_activity()
+                self._transition()
+
+            except Backtrack as exc:
+                if not self._backtrack():
+                    self.on_exhausted()
+
+                    raise Reject("Backtracking exhausted.")
+
     def run(self):
         """Run the state machine"""
 
         try:
-            self._enter()
-            while True:
-                try:
-                    self._do_activity()
-                    self._transition()
-
-                except Backtrack as exc:
-                    if not self._backtrack():
-                        self.on_exhausted()
-
-                        raise Reject("Backtracking exhausted.")
+            self._run()
 
         except Accept as exc:
             self._exit()

@@ -33,6 +33,10 @@ Currently available modules are:
     <td>backtrack</td>
     <td>Provides a mix-in class for easy backtracking over the state sequence.</td>
   </tr>
+  <tr>
+    <td>pushdown</td>
+    <td>Implements a pushdown automata.</td>
+  </tr>
 </table>
 
 ## Examples
