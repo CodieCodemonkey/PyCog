@@ -29,12 +29,23 @@ class state:
         @transition('q')
         def p(self):
             '''Test for transition to q.'''
-            ...
+            return True
+
+        # Another way to specify transitions.  The lambda function takes
+        # a StateMachine instance as it's `sm` argument.
+        @state('q', transitions=[
+            ('r', lammbda sm, cur_state, trans_state: ...),
+            ('s', lammbda sm, cur_state, trans_state: ...)])
+
     """
 
-    def __init__(self, name, data=None, **kw_args):
+    def __init__(self, name, data=None, transitions=None, **kw_args):
         super().__init__(**kw_args)
         self.record = _StateRecord(name, data)
+        if transitions != None:
+            for target_s_name, test in transitions:
+                self.record.transitions.append(target_s_name)
+                self.record.transition_tests[target_s_name] = test
 
     def __call__(self, activity):
         self.record.activity = activity

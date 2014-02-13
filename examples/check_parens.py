@@ -7,6 +7,19 @@ from pycog.statemachine import state
 from pycog.pushdown import *
 from pycog.trace import trace
 
+# Symbols that we give special treatment to
+container_symbols = '()[]{}'
+
+# Transition test for states associated with container symbols.
+# Args:
+#     sm: state machine
+#     s: the current active state
+#     t: the target state of the transition
+symbol_transition_test = lambda sm, s, t: sm.symbol == t
+
+# transition test list used to transitions to container symbol states
+symbol_transitions = [(s, symbol_transition_test) for s in container_symbols]
+
 # Uncomment the next line to see a trace of the state machine.
 # @trace
 class ParenChecker(PushDown):
@@ -97,9 +110,9 @@ class ParenChecker(PushDown):
     @close_brace.transition('scan')
     def close_brace(self): return True
 
-    @state('scan')
+    @state('scan', transitions=symbol_transitions)
     def scan(self):
-        while self.symbol not in "()[]{}":
+        while self.symbol not in container_symbols:
             if self.symbol == '':
                 if len(self.stack) != 0:
                     self.error_msg = "Unmatched symbol found"
@@ -107,21 +120,9 @@ class ParenChecker(PushDown):
             self.advance()
     @scan.transition('final')
     def scan(self): return self.symbol == '' and len(self.stack) == 0
-    @scan.transition('(') 
-    def scan(self): return self.symbol == '('
-    @scan.transition(')') 
-    def scan(self): return self.symbol == ')'
-    @scan.transition('[') 
-    def scan(self): return self.symbol == '['
-    @scan.transition(']') 
-    def scan(self): return self.symbol == ']'
-    @scan.transition('{') 
-    def scan(self): return self.symbol == '{'
-    @scan.transition('}') 
-    def scan(self): return self.symbol == '}'
 
     def no_transition(self, s_name):
-        self.error_msg = "Unknown Error"
+        self.error_msg = "No transition available--unknown cause."
         if len(self.stack) > 0:
             self.error_msg = "Symbol '{st}' not matched."
             self.error_msg = self.error_msg.format(st=self.stack[-1])
@@ -150,7 +151,6 @@ if __name__ == '__main__':
     print()
     print("PDA to accept strings with matching parens, braces, and brackets.")
     print('='*60)
-    import pudb;pudb.set_trace()
     report(ParenChecker(StringIO("( )")))
     report(ParenChecker(StringIO("(")))
     report(ParenChecker(StringIO(")")))
