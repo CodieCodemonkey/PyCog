@@ -122,11 +122,13 @@ class ParenChecker(PushDown):
     @scan.transition('final')
     def scan(self): return self.symbol == '' and len(self.stack) == 0
 
-    def no_transition(self, s_name):
+    def on_no_transition(self, s_name):
         self.error_msg = "No transition available--unknown cause."
         if len(self.stack) > 0:
             self.error_msg = "Symbol '{st}' not matched."
             self.error_msg = self.error_msg.format(st=self.stack[-1])
+
+        super().on_no_transition(s_name)
 
     @state('final')
     def final(self):

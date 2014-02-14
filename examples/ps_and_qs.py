@@ -51,7 +51,7 @@ class PsAndQs(StateMachine):
     def final(self):
         raise Accept()
 
-    def no_transition(self, s_name):
+    def on_no_transition(self, s_name):
         raise Reject("Unexpected character")
 
     def on_reject(self, exc):

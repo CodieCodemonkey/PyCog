@@ -169,16 +169,18 @@ class StateMachine:
         """
         pass
 
-    def no_transition(self, s_name):
+    def on_no_transition(self, s_name):
         """
-        Call the no_transition handler.
+        Handle the no_transition notification.
 
-        The no_transition handler can be used to raise a custom exception,
-        including Accept or Reject.  If no exception is raise, Reject will be
-        automatically raised following the call.
+        The on_no_transition handler is called when a state has no acceptable
+        transitions available.
 
         Args:
             s_name: is the name of the state being exited.
+
+        Derived classes implementing this handler should call
+        super().on_no_transition().
         """
         pass
 
@@ -297,7 +299,7 @@ class StateMachine:
                 allowed_transitions.append(next_trans)
 
         if len(allowed_transitions) == 0:
-            # TODO: Handle this through no_transition.
+            # TODO: Handle this through on_no_transition.
             if hasattr(self, "_backtrack"):
                 if self._backtrack():
                     return
@@ -306,7 +308,7 @@ class StateMachine:
 
                     raise Reject("Backtracking exhausted.")
             else:
-                self.no_transition(self.current_state)
+                self.on_no_transition(self.current_state)
                 msg = "Cannot transition from state {st}"
                 raise Reject(msg.format(st=self.current_state))
 
