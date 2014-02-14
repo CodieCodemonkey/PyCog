@@ -117,7 +117,7 @@ class Backtracking:
             exhausted.
         """
 
-        self._exit()
+        super()._exit()
         # Find the latest occurrence that doesn't have an empty transition
         # stack.
         for occ in reversed(self.track.occurrences):
@@ -128,7 +128,7 @@ class Backtracking:
                 self.on_transition(self.current_state, next_state)
 
                 self.current_state = next_state
-                self._enter()
+                super()._enter()
 
                 return True
             else:
@@ -137,6 +137,12 @@ class Backtracking:
                 self.track.occurrences.pop()
 
         return False
+
+    def on_transition(self, exiting, entering):
+        """
+        Notification that a transition is in effect.
+        """
+        super().on_transition(exiting, entering)
 
     def on_exhausted(self):
         """
@@ -174,7 +180,8 @@ class Backtracking:
         occ = self.track.last()
         occ.set_transitions(allowed_transitions)
 
-        trans = self.select_transition(self.current_state, allowed_transitions)
+        trans = self.select_transition(self.current_state,
+                                       allowed_transitions)
         occ.remove_transition(trans)
 
         return trans
