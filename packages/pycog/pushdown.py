@@ -22,10 +22,14 @@ class PushDown(sm.StateMachine):
 
     def on_resume_state(self, s_name):
         """
-        Notification that a state has been resumed after being suspended.
+        Handle notificaiton that a state has been resumed after being
+            suspended.
 
         Args:
             s_name: Name of the state that has been resumed.
+
+        Derived classes implementing this handler should call
+        super().on_resume_state.
         """
         pass
 
@@ -42,6 +46,9 @@ class PushDown(sm.StateMachine):
 
         Args:
             s_name: is the name of the state being suspended.
+
+        Derived classes implementing this handler should call
+        super().on_suspend_state().
         """
         pass
 

@@ -144,6 +144,9 @@ class StateMachine:
 
         Args:
             s_name: Name of the state that has been entered.
+
+        Derived classes implementing this handler should call
+        super().on_enter_state().
         """
         pass
 
@@ -160,6 +163,9 @@ class StateMachine:
 
         Args:
             s_name: is the name of the state being exited.
+
+        Derived classes implementing this handler should call
+        super().on_exit_state().
         """
         pass
 
@@ -269,6 +275,9 @@ class StateMachine:
         Args:
             exiting: State name of the previously active state.
             entering: State name of the next active state.
+
+        Derived classes implementing this handler should call
+        super().on_transition().
         """
         pass
 
@@ -368,6 +377,9 @@ class StateMachine:
 
         Args:
             exc: Exception triggering this event.
+
+        Derived classes implementing this handler should call
+        super().on_accept().
         """
         pass
 
@@ -377,6 +389,9 @@ class StateMachine:
 
         Args:
             exc: Exception triggering this event.
+
+        Derived classes implementing this handler should call
+        super().on_reject().
         """
         pass
 

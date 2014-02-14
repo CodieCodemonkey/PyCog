@@ -78,14 +78,13 @@ class MinimalChange(StateMachine, Backtracking):
         raise Backtrack()
 
     def on_backtrack(self, occ):
+        super().on_backtrack(occ)
+
         if occ.state not in ['init', 'final']:
             # This works because coin states are integers
             self.accumulated -= self.current_state
             self.num_coins -= 1
             self.coins[self.current_state] -= 1
-
-    def on_exhausted(self):
-        pass
 
 if __name__ == "__main__":
     fsm = MinimalChange(35, [1, 3, 5, 7, 11, 13])

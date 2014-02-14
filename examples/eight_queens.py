@@ -140,6 +140,8 @@ class EightQueens(StateMachine, Backtracking):
             sys.stdout.write('\n')
 
     def on_backtrack(self, occ):
+        super().on_backtrack(occ)
+
         """Undo the placing of a queen in response to backtracking."""
         if occ.state not in ['init', 'final']:
             self.queens.remove(self.current_state)

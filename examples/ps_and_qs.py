@@ -55,6 +55,8 @@ class PsAndQs(StateMachine):
         raise Reject("Unexpected character")
 
     def on_reject(self, exc):
+        super().on_reject(exc)
+
         self.error_msg = exc.args[0]
 
 

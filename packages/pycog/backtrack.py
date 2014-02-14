@@ -130,12 +130,25 @@ class Backtracking:
 
         return False
 
-    def on_backtrack(self, occ):
+    def on_exhausted(self):
         """
-        Backtrack notification.
+        Backtracking is exhausted notification handler.
 
         The specified StateOccurrence has been backtracked, and is about to be
         deleted.  This provides a chance to synchronize application data.
+
+        If you overload this method, be sure to call super().on_exhausted().
+        """
+        pass
+
+    def on_backtrack(self, occ):
+        """
+        Backtrack notification handler.
+
+        The specified StateOccurrence has been backtracked, and is about to be
+        deleted.  This provides a chance to synchronize application data.
+
+        If you overload this method, be sure to call super().on_backtrack().
         """
         pass
 
