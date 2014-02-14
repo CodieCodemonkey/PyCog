@@ -56,7 +56,7 @@ def transition_test(fsm, cur_square, next_square):
 
     return True
 
-class EightQueens(StateMachine, Backtracking):
+class EightQueens(Backtracking, StateMachine):
     """
     Solve the 8-queens problem using backtracking.
 

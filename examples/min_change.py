@@ -9,7 +9,7 @@ from pycog.exceptions import *
 from pycog.statemachine import *
 from pycog.backtrack import *
 
-class MinimalChange(StateMachine, Backtracking):
+class MinimalChange(Backtracking, StateMachine):
     def __init__(self, amount, coin_values):
         super().__init__(initial='init')
 

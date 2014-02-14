@@ -1,5 +1,6 @@
 """Support for back-tracking in state machines"""
 
+from pycog.statemachine import StateMachine
 import itertools
 
 def _track_format(occ):
@@ -82,6 +83,13 @@ class Backtracking:
     def __init__(self, max_occ=-1, **kw_args):
         super().__init__(**kw_args)
         self.track = Track(max_occ)
+
+        if __debug__:
+            if type(self).mro().index(Backtracking) > \
+                    type(self).mro().index(StateMachine):
+                raise AssertionError("class Backtracking modifies class " \
+                                     "StateMachine and must be ahead of it " \
+                                     "in the mro.")
 
     def _bt_on_enter_state(self):
         """
