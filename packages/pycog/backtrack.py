@@ -91,13 +91,12 @@ class Backtracking:
                                      "StateMachine and must be ahead of it " \
                                      "in the mro.")
 
-    def _bt_on_enter_state(self):
+    def on_enter_state(self, s_name):
         """
         Handle on_enter notifications for backtracking.
-
-        This should be removed in favor of super-messaging.
         """
         self.track.append(self.make_occurrence())
+        super().on_enter_state(s_name)
 
     def make_occurrence(self):
         """
@@ -124,11 +123,7 @@ class Backtracking:
             if len(occ.transitions) > 0:
                 self.current_state = occ.state
 
-                next_state = self._bt_select_transition(occ.transitions)
-                self.on_transition(self.current_state, next_state)
-
-                self.current_state = next_state
-                super()._enter()
+                super()._transition_multiple(occ.transitions)
 
                 return True
             else:
@@ -142,7 +137,18 @@ class Backtracking:
         """
         Notification that a transition is in effect.
         """
+        occ = self.track.last()
+        occ.remove_transition(entering)
+
         super().on_transition(exiting, entering)
+
+    def on_no_transition(self, s_name):
+        if self._backtrack():
+            return
+        else:
+            self.on_exhausted()
+
+            raise Reject("Backtracking exhausted.")
 
     def on_exhausted(self):
         """
@@ -166,25 +172,16 @@ class Backtracking:
         """
         pass
 
-    def _bt_select_transition(self, allowed_transitions):
+    def on_pre_select_transition(self, s_name, allowed_transitions):
         """
-        Backtracking select transition hook.
+        Handle pre_select_transition notifications.
 
-        Captures the allowed transitions, and delegates to select_transition()
-        to choose among them.
-
-        Because state_machine calls this instead of select_transitions directly
-        (if _bt_select_transition is present), overloading select_transitions()
-        does not require a super-message to Backtracking.
+        Captures the allowed transitions for backtracking.
         """
         occ = self.track.last()
         occ.set_transitions(allowed_transitions)
 
-        trans = self.select_transition(self.current_state,
-                                       allowed_transitions)
-        occ.remove_transition(trans)
-
-        return trans
+        super().on_pre_select_transition(s_name, allowed_transitions)
 
 if __name__ == '__main__':
     import sys

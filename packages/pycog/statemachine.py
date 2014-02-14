@@ -135,7 +135,6 @@ class StateMachine:
     def _enter(self):
         """Call the current state's on_enter handler."""
 
-        if hasattr(self, '_bt_on_enter_state'): self._bt_on_enter_state()
         self.on_enter_state(self._current_state)
 
     def on_enter_state(self, s_name):
@@ -153,8 +152,6 @@ class StateMachine:
     def _exit(self):
         """Call the current state's on_exit handler."""
 
-        if hasattr(self, '_bt_exit_state'):
-            self._bt_exit_state()
         self.on_exit_state(self._current_state)
 
     def on_exit_state(self, s_name):
@@ -182,7 +179,8 @@ class StateMachine:
         Derived classes implementing this handler should call
         super().on_no_transition().
         """
-        pass
+        msg = "Cannot transition from state {st}"
+        raise Reject(msg.format(st=self.current_state))
 
     def add_state(self, s_name, state_data=None, activity=None):
         """
@@ -253,6 +251,22 @@ class StateMachine:
         record.transition.remove(entering)
         del record.transition_tests[entering]
 
+    def on_pre_select_transition(self, s_name, candidate_s_names):
+        """
+        Handle a notification that a transition is about to be selected.
+
+        This handler may be useful to record the list of transitions.
+
+        Args:
+            s_name: The name of the current state.
+            candidate_s_names: List of transition candidates which have passed
+                any applicable transition tests.
+
+        Derived classes implementing this handler should call
+        super().on_pre_select_transition().
+        """
+        pass
+
     def select_transition(self, s_name, candidate_s_names):
         """
         Select a transition state from the list of qualifying states.
@@ -283,6 +297,17 @@ class StateMachine:
         """
         pass
 
+    def _transition_multiple(self, allowed_transitions):
+        """
+        """
+        self.on_pre_select_transition(self.current_state, allowed_transitions)
+        next_state = self.select_transition(self.current_state,
+                                            allowed_transitions)
+        self.on_transition(self.current_state, next_state)
+
+        self._current_state = next_state
+        self._enter()
+
     def _transition(self):
         """
         Handle the details of transitioning.
@@ -299,31 +324,12 @@ class StateMachine:
                 allowed_transitions.append(next_trans)
 
         if len(allowed_transitions) == 0:
-            # TODO: Handle this through on_no_transition.
-            if hasattr(self, "_backtrack"):
-                if self._backtrack():
-                    return
-                else:
-                    self.on_exhausted()
-
-                    raise Reject("Backtracking exhausted.")
-            else:
-                self.on_no_transition(self.current_state)
-                msg = "Cannot transition from state {st}"
-                raise Reject(msg.format(st=self.current_state))
+            self.on_no_transition(self.current_state)
+            return
 
         self._exit()
-        # TODO: Handle this through select_transition (with super messaging)
-        if hasattr(self, '_bt_select_transition'):
-            next_state = self._bt_select_transition(allowed_transitions)
-        else:
-            next_state = self.select_transition(self.current_state,
-                                                allowed_transitions)
 
-        self.on_transition(self.current_state, next_state)
-
-        self._current_state = next_state
-        self._enter()
+        self._transition_multiple(allowed_transitions)
 
     def _do_activity(self):
         """
