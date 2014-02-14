@@ -2,6 +2,13 @@
 
 import itertools
 
+def _track_format(occ):
+    """
+    Format one StateOccurrence in a Track as an arrow.
+    """
+    arrow = ' -({n})-> '
+    return str(occ.state_name), arrow.format(n=len(occ.transitions)+1)
+
 class StateOccurrence:
     """
     A state in the context of the transition sequence.
@@ -17,10 +24,17 @@ class StateOccurrence:
         self.transitions = []
 
     def set_transitions(self, transitions):
+        """
+        Set the list of transitions for this occurrence.
+        """
         self.transitions = transitions
 
     def remove_transition(self, transition):
+        """
+        Remove one transition from the occurrence's transition list.
+        """
         self.transitions.remove(transition)
+
 
 class Track:
     """
@@ -28,19 +42,25 @@ class Track:
 
     This is a stack of StateOccurrence objects, with a bound on its depth.
     """
-    def __init__(self, max_occ = -1):
+    def __init__(self, max_occ=-1):
         self.occurrences = []
         self.max_occ = max_occ
 
     def append(self, occ):
+        """
+        Append an occurrence to this track.
+        """
         self.occurrences.append(occ)
         if self.max_occ < 0:
             return
-        l = len(self.occurrences)
-        if l > self.max_occ:
-            del self.occurrences[0:l - self.max_occ]
+        track_len = len(self.occurrences)
+        if track_len > self.max_occ:
+            del self.occurrences[0:track_len - self.max_occ]
 
     def last(self):
+        """
+        Return the last occurrence in a Track.
+        """
         return self.occurrences[-1]
 
     def __iter__(self):
@@ -59,27 +79,34 @@ class Backtracking:
     """
     Mix-in to implement backtracking in a state machine.
     """
-    def __init__(self, max_occ = -1, **kw_args):
+    def __init__(self, max_occ=-1, **kw_args):
         super().__init__(**kw_args)
         self.track = Track(max_occ)
 
     def _bt_on_enter_state(self):
+        """
+        Handle on_enter notifications for backtracking.
+
+        This should be removed in favor of super-messaging.
+        """
         self.track.append(self.make_occurrence())
 
     def make_occurrence(self):
         """
         Create an occurrence from the current state.
-        
+
         Allows Backtracking derived classes to use their own occurrence data.
         """
         return StateOccurrence(self.current_state)
 
     def _backtrack(self):
         """
-        Backtrack, reentering the state after the most recent unexplored transition.
+        Backtrack, reentering the state after the most recent unexplored
+        transition.
 
         Returns:
-            True if an alternate path was found, False is all paths are exhausted.
+            True if an alternate path was found, False is all paths are
+            exhausted.
         """
 
         self._exit()
@@ -118,7 +145,7 @@ class Backtracking:
 
         Captures the allowed transitions, and delegates to select_transition()
         to choose among them.
-        
+
         Because state_machine calls this instead of select_transitions directly
         (if _bt_select_transition is present), overloading select_transitions()
         does not require a super-message to Backtracking.

@@ -6,6 +6,7 @@ if __name__ == '__main__':
 from pycog.statemachine import state
 from pycog.pushdown import *
 from pycog.trace import trace
+from pycog.exceptions import Reject, Accept
 
 # Symbols that we give special treatment to
 container_symbols = '()[]{}'

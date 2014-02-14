@@ -20,12 +20,12 @@ class Graph:
 
         return self._vertices.__iter__()
 
-    def succ(self, v):
+    def succ(self, vertex):
         """
         Get the successors of a vertex.
 
         Args:
-            v: Vertex for which successors are desired.
+            vertex: Vertex for which successors are desired.
 
         Returns:
             An iterator over the successor vertices.
@@ -33,14 +33,14 @@ class Graph:
         Raises:
             KeyError
         """
-        return self._succ[v].__iter__()
+        return self._succ[vertex].__iter__()
 
-    def pred(self, v):
+    def pred(self, vertex):
         """
         Get the predecessors of a vertex.
 
         Args:
-            v: Vertex for which predecessors are desired.
+            vertex: Vertex for which predecessors are desired.
 
         Returns:
             An iterator over the preceding vertices.
@@ -48,33 +48,33 @@ class Graph:
         Raises:
             KeyError
         """
-        return self._pred[v].__iter__()
+        return self._pred[vertex].__iter__()
 
-    def add(self, v):
+    def add(self, vertex):
         """
         Add a vertex to the graph.
 
         Args:
-            v: Vertex to add.
+            vertex: Vertex to add.
         """
-        self._vertices.add(v)
-        self._pred[v] = set()
-        self._succ[v] = set()
+        self._vertices.add(vertex)
+        self._pred[vertex] = set()
+        self._succ[vertex] = set()
 
-    def remove(self, v):
+    def remove(self, vertex):
         """
         Remove a vertex from the graph.
 
         Args:
-            v: Vertex to remove.
+            vertex: Vertex to remove.
         """
-        for p in self.pred(v):
-            self.disconnect(p, v)
-        for s in self.succ(v):
-            self.disconnect(v, s)
-        self._vertices.remove(v)
-        del self._pred[v]
-        del self._succ[v]
+        for pred in self.pred(vertex):
+            self.disconnect(pred, vertex)
+        for succ in self.succ(vertex):
+            self.disconnect(vertex, succ)
+        self._vertices.remove(vertex)
+        del self._pred[vertex]
+        del self._succ[vertex]
 
     def clear(self):
         """Remove all vertices."""
@@ -110,7 +110,7 @@ class Graph:
         self._succ[pred].remove(succ)
         self._pred[succ].remove(pred)
 
-    def in_degree(self, v):
+    def in_degree(self, vertex):
         """
         Get the in-degree of a vertex.
 
@@ -118,7 +118,7 @@ class Graph:
         vertex.
 
         Args:
-            v: Query vertex.
+            vertex: Query vertex.
 
         Returns:
             The number of incoming edges as an integer.
@@ -126,9 +126,9 @@ class Graph:
         Raises:
             KeyError
         """
-        return len(self._pred[v])
+        return len(self._pred[vertex])
 
-    def out_degree(self, v):
+    def out_degree(self, vertex):
         """
         Get the out-degree of a vertex.
 
@@ -136,7 +136,7 @@ class Graph:
         vertex.
 
         Args:
-            v: Query vertex.
+            vertex: Query vertex.
 
         Returns:
             The number of outgoing edges as an integer.
@@ -144,7 +144,7 @@ class Graph:
         Raises:
             KeyError
         """
-        return len(self._succ[v])
+        return len(self._succ[vertex])
 
     def num_vertices(self):
         """Number of vertices in the graph."""
@@ -189,12 +189,12 @@ class GraphWrapper:
 
         return self._graph.gp_vertices()
 
-    def succ(self, v):
+    def succ(self, vertex):
         """
         Get the successors of a vertex.
 
         Args:
-            v: Vertex for which successors are desired.
+            vertex: Vertex for which successors are desired.
 
         Returns:
             An iterator over the successor vertices.
@@ -202,14 +202,14 @@ class GraphWrapper:
         Raises:
             KeyError
         """
-        return self._graph.gp_succ(v)
+        return self._graph.gp_succ(vertex)
 
-    def pred(self, v):
+    def pred(self, vertex):
         """
         Get the predecessors of a vertex.
 
         Args:
-            v: Vertex for which predecessors are desired.
+            vertex: Vertex for which predecessors are desired.
 
         Returns:
             An iterator over the preceding vertices.
@@ -217,44 +217,44 @@ class GraphWrapper:
         Raises:
             KeyError
         """
-        def pred_gen(v):
+        def pred_gen(vertex):
             """Brute force generation of predecessors."""
             for vert in self.vertices():
-                for s in self.succ(vert):
-                    if s == v:
+                for succ in self.succ(vert):
+                    if succ == vertex:
                         yield vert
 
         if hasattr(self._graph, 'gp_pred'):
-            return self._graph.gp_pred(v)
+            return self._graph.gp_pred(vertex)
         else:
-            return pred_gen(v)
+            return pred_gen(vertex)
 
-    def add(self, v):
+    def add(self, vertex):
         """
         Add a vertex to the graph.
 
         Args:
-            v: Vertex to add.
+            vertex: Vertex to add.
         """
-        return self._graph.gp_add(v)
+        return self._graph.gp_add(vertex)
 
-    def remove(self, v):
+    def remove(self, vertex):
         """
         Remove a vertex from the graph.
 
         Args:
-            v: Vertex to remove.
+            vertex: Vertex to remove.
         """
-        return self._graph.gp_remove(v)
+        return self._graph.gp_remove(vertex)
 
     def clear(self):
         """Remove all vertices."""
         if hasattr(self._graph, 'gp_clear'):
             self._graph.gp_clear()
         else:
-            verts = [v for v in self._graph.vertices()]
-            for v in verts:
-                self._graph.remove(v)
+            verts = [vertex for vertex in self._graph.vertices()]
+            for vertex in verts:
+                self._graph.remove(vertex)
 
     def connect(self, pred, succ):
         """
@@ -282,7 +282,7 @@ class GraphWrapper:
         """
         return self._graph.gp_disconnect(pred, succ)
 
-    def in_degree(self, v):
+    def in_degree(self, vertex):
         """
         Get the in-degree of a vertex.
 
@@ -290,7 +290,7 @@ class GraphWrapper:
         vertex.
 
         Args:
-            v: Query vertex.
+            vertex: Query vertex.
 
         Returns:
             The number of incoming edges as an integer.
@@ -299,13 +299,14 @@ class GraphWrapper:
             KeyError
         """
         if hasattr(self._graph, 'gp_in_degree'):
-            return self._graph.gp_in_degree(v)
+            return self._graph.gp_in_degree(vertex)
         else:
             cnt = -1
-            for cnt, _ in enumerate(self.pred(v)): pass
+            for cnt, _ in enumerate(self.pred(vertex)):
+                pass
             return cnt + 1
 
-    def out_degree(self, v):
+    def out_degree(self, vertex):
         """
         Get the out-degree of a vertex.
 
@@ -313,7 +314,7 @@ class GraphWrapper:
         vertex.
 
         Args:
-            v: Query vertex.
+            vertex: Query vertex.
 
         Returns:
             The number of outgoing edges as an integer.
@@ -322,10 +323,11 @@ class GraphWrapper:
             KeyError
         """
         if hasattr(self._graph, 'gp_out_degree'):
-            return self._graph.gp_out_degree(v)
+            return self._graph.gp_out_degree(vertex)
         else:
             cnt = -1
-            for cnt, _ in enumerate(self.succ(v)): pass
+            for cnt, _ in enumerate(self.succ(vertex)):
+                pass
             return cnt + 1
 
     def num_vertices(self):
@@ -334,6 +336,7 @@ class GraphWrapper:
             return self._graph.gp_num_vertices()
         else:
             cnt = -1
-            for cnt, _ in enumerate(self.vertices()): pass
+            for cnt, _ in enumerate(self.vertices()):
+                pass
             return cnt + 1
 

@@ -1,6 +1,6 @@
 """Non-deterministic pushdown automata"""
 
-from pycog.exceptions import *
+from pycog.exceptions import PopState, StateStackEmpty
 import pycog.statemachine as sm
 
 class PushDown(sm.StateMachine):
@@ -16,7 +16,8 @@ class PushDown(sm.StateMachine):
     def _resume(self):
         """Call the current state's on_resume handler."""
 
-        if hasattr(self, '_bt_on_resume_state'): self._bt_on_resume_state()
+        if hasattr(self, '_bt_on_resume_state'):
+            self._bt_on_resume_state()
         self.on_resume_state(self._current_state)
 
     def on_resume_state(self, s_name):
@@ -31,7 +32,8 @@ class PushDown(sm.StateMachine):
     def _suspend(self):
         """Call the current state's on_suspend handler."""
 
-        if hasattr(self, '_bt_suspend_state'): self._bt_suspend_state()
+        if hasattr(self, '_bt_suspend_state'):
+            self._bt_suspend_state()
         self.on_suspend_state(self._current_state)
 
     def on_suspend_state(self, s_name):
@@ -62,6 +64,9 @@ class PushDown(sm.StateMachine):
         self._run()
 
     def pop(self):
+        """
+        Pop the last suspended state from the stack and resume it.
+        """
         raise PopState()
 
     def _do_activity(self):

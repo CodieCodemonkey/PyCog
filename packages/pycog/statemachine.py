@@ -2,7 +2,7 @@
 
 import inspect
 
-from pycog.exceptions import *
+from pycog.exceptions import Accept, Reject, Backtrack
 
 class _StateRecord:
     """Information about a state."""
@@ -70,9 +70,15 @@ class state:
         """
 
         def _transition_setter(method):
+            """
+            Decorator helper for transitions.
+            """
             nonlocal self, target_s_name
 
             def _trans_test(fsm, cur_state, next_state):
+                """
+                Adaptor for one-parameter transition tests.
+                """
                 return method(fsm)
 
             self.record.transitions.append(target_s_name)
@@ -144,7 +150,8 @@ class StateMachine:
     def _exit(self):
         """Call the current state's on_exit handler."""
 
-        if hasattr(self, '_bt_exit_state'): self._bt_exit_state()
+        if hasattr(self, '_bt_exit_state'):
+            self._bt_exit_state()
         self.on_exit_state(self._current_state)
 
     def on_exit_state(self, s_name):
@@ -231,8 +238,10 @@ class StateMachine:
 
         Raises:
             KeyError
+
+        TODO: Needs test.
         """
-        record = self._state_records[self.exiting]
+        record = self._state_records[exiting]
         record.transition.remove(entering)
         del record.transition_tests[entering]
 
@@ -273,11 +282,13 @@ class StateMachine:
 
         # Transitioning
         allowed_transitions = []
-        for next in record.transitions:
-            if record.transition_tests[next](self, self.current_state, next):
-                allowed_transitions.append(next)
+        for next_trans in record.transitions:
+            if record.transition_tests[next_trans](self, self.current_state,
+                                                   next_trans):
+                allowed_transitions.append(next_trans)
 
         if len(allowed_transitions) == 0:
+            # TODO: Handle this through no_transition.
             if hasattr(self, "_backtrack"):
                 if self._backtrack():
                     return
@@ -288,9 +299,10 @@ class StateMachine:
             else:
                 self.no_transition(self.current_state)
                 msg = "Cannot transition from state {st}"
-                raise Reject(msg.format(st = self.current_state))
+                raise Reject(msg.format(st=self.current_state))
 
         self._exit()
+        # TODO: Handle this through select_transition (with super messaging)
         if hasattr(self, '_bt_select_transition'):
             next_state = self._bt_select_transition(allowed_transitions)
         else:
@@ -310,18 +322,26 @@ class StateMachine:
         """
         if self.current_state in self._state_records:
             activity = self._state_records[self.current_state].activity
-            if activity == None: return
+            if activity == None:
+                return
 
             activity(self)
 
     def _run(self):
+        """
+        Helper function for run.
+
+        This is the heart of run(), but without the exception handling.  _run
+        can be called recursively, e.g. in pushdown automata.
+        """
         self._enter()
         while True:
             try:
                 self._do_activity()
                 self._transition()
 
-            except Backtrack as exc:
+            except Backtrack:
+                # TODO: Handle this without referencing backtracking.
                 if not self._backtrack():
                     self.on_exhausted()
 
