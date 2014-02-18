@@ -7,9 +7,12 @@ from pycog.exceptions import Accept, Reject, Backtrack
 class _StateRecord:
     """Information about a state."""
 
-    def __init__(self, name, data, activity=None):
+    def __init__(self, name, state_dict, activity=None):
         self.name = name
-        self.data = data
+        if state_dict == None:
+            self.state_dict = dict()
+        else:
+            self.state_dict = state_dict
         self.activity = activity
 
         # Names of available transitions.  Order is important for stability.
@@ -34,14 +37,17 @@ class state:
         # Another way to specify transitions.  The lambda function takes
         # a StateMachine instance as it's `sm` argument.
         @state('q', transitions=[
-            ('r', lammbda sm, cur_state, trans_state: ...),
-            ('s', lammbda sm, cur_state, trans_state: ...)])
-
+            ('r', lambda sm, cur_state, trans_state: ...),
+            ('s', lambda sm, cur_state, trans_state: ...)])
     """
 
-    def __init__(self, name, data=None, transitions=None, **kw_args):
+    def __init__(self, name, state_dict=None, transitions=None, **kw_args):
+        if __debug__:
+            if state_dict != None:
+                assert type(state_dict) is dict
+
         super().__init__(**kw_args)
-        self.record = _StateRecord(name, data)
+        self.record = _StateRecord(name, state_dict)
         if transitions != None:
             for target_s_name, test in transitions:
                 self.record.transitions.append(target_s_name)
@@ -116,20 +122,20 @@ class StateMachine:
     def current_state(self, value):
         self._current_state = value
 
-    def get_state_data(self, s_name):
+    def state_dict(self, s_name):
         """
-        Get user-defined data associated with a state.
+        Access the dictionary associated with the state.
 
         Args:
             s_name: Name of the state.
 
         Returns:
-            User defined data associated with this state, or None.
+            The dictionary associated with s_name.
 
         Raises:
-            KeyError if s_name is not a known state name.
+            KeyError: s_name is not a registered state.
         """
-        return self._state_records[s_name].data
+        return self._state_records[s_name].state_dict
 
     # State forwards
     def _enter(self):
