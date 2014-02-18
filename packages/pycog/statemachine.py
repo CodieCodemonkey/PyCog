@@ -94,6 +94,14 @@ class state:
 
         return _transition_setter
 
+
+def transition_always(fsm, cur_state, next_state):
+    """
+    Convenience transition test -- always transition.
+    """
+    return True
+
+
 class StateMachine:
     """State machine framework"""
 
