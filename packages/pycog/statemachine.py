@@ -119,7 +119,7 @@ class StateMachine:
         # Create states for items created with the 'state' decorator
         for attr_name in dir(self):
             attr = inspect.getattr_static(self, attr_name)
-            if type(attr) == state:
+            if isinstance(attr, state):
                 self._state_records[attr.record.name] = attr.record
 
     @property
