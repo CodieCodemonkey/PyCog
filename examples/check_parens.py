@@ -48,7 +48,7 @@ class ParenChecker(PushDown):
         # Track the position of pushes and pops in the stack frame.
         frame.pos = -1
     def on_suspend_state(self, s_name):
-        super().on_suspend_state(s_name):
+        super().on_suspend_state(s_name)
 
         # Update the stack frame when suspending (before the frame is pushed)
         # so that we can use the position for error processing.  In our case
