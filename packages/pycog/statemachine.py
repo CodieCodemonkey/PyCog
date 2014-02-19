@@ -311,6 +311,11 @@ class StateMachine:
         """
         pass
 
+    def _do_transition(self, next_state):
+        """Final execution of a transition."""
+        self._current_state = next_state
+        self._enter()
+        
     def _transition_multiple(self, allowed_transitions):
         """
         """
@@ -319,8 +324,7 @@ class StateMachine:
                                             allowed_transitions)
         self.on_transition(self.current_state, next_state)
 
-        self._current_state = next_state
-        self._enter()
+        self._do_transition(next_state)
 
     def _transition(self):
         """
@@ -337,7 +341,7 @@ class StateMachine:
                                                    next_trans):
                 allowed_transitions.append(next_trans)
 
-        if len(allowed_transitions) == 0:
+        if not allowed_transitions:
             self.on_no_transition(self.current_state)
             return
 
