@@ -30,9 +30,3 @@ class StateStackEmpty(Exception):
         else:
             super().__init__(msg)
 
-class PopState(Exception):
-    """
-    Request popping the state stack (in a PushDown)
-    """
-    pass
-

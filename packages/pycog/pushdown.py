@@ -1,7 +1,50 @@
 """Non-deterministic pushdown automata"""
 
-from pycog.exceptions import PopState, StateStackEmpty
+from pycog.exceptions import StateStackEmpty
 import pycog.statemachine as sm
+
+
+class push_state(sm.state):
+    """
+    State decorator for states that push the state stack.
+    """
+
+    def __init__(self, name, resume, state_dict=None, **kw_args):
+        if state_dict != None:
+            assert type(state_dict) is dict
+        else:
+            state_dict = dict()
+
+        state_dict['_push_state'] = True
+        state_dict['_resume_state'] = resume
+        super().__init__(name, state_dict, **kw_args)
+
+
+class pop_state(sm.state):
+    """
+    State decorator for states that pop the state stack.
+    """
+
+    def __init__(self, name, state_dict=None, **kw_args):
+        if state_dict != None:
+            assert type(state_dict) is dict
+        else:
+            state_dict = dict()
+
+        state_dict['_pop_state'] = True
+        super().__init__(name, state_dict, **kw_args)
+
+
+class Frame:
+    """
+    A stack frame.
+
+    This is a name space that is scoped according to stack pushes and pops.
+    The 'state' attribute is reserved for the PushDown class, other attributes
+    may be added by applications.
+    """
+    pass
+
 
 class PushDown(sm.StateMachine):
     """
@@ -12,17 +55,50 @@ class PushDown(sm.StateMachine):
         super().__init__(**kw_args)
 
         self.stack = []
+        self._frame = Frame()
+        self.on_init_frame(self._frame)
+
+    @property
+    def top_frame(self):
+        """
+        Access the frame on the top of the stack.
+
+        Raises:
+            IndexError: The stack is empty.
+        """
+        if self.stack_empty: raise StateStackEmpty()
+        return self.stack[-1]
+
+    @property
+    def active_frame(self):
+        """
+        Access the active frame.
+        """
+        return self._frame
+
+    @property
+    def stack_empty(self):
+        """
+        Return whether the stack is empty or not.
+        """
+        return len(self.stack) == 0
 
     def _resume(self):
-        """Call the current state's on_resume handler."""
+        """
+        Resume a state suspended by a push.
 
-        if hasattr(self, '_bt_on_resume_state'):
-            self._bt_on_resume_state()
+        Calls the current state's on_resume handler, and then transitions to
+        the resume state.
+        """
         self.on_resume_state(self._current_state)
+
+        record = self._state_records[self.current_state]
+        next_state = record.state_dict['_resume_state']
+        super()._do_transition(next_state)
 
     def on_resume_state(self, s_name):
         """
-        Handle notificaiton that a state has been resumed after being
+        Handle notification that a state has been resumed after being
             suspended.
 
         Args:
@@ -40,6 +116,21 @@ class PushDown(sm.StateMachine):
             self._bt_suspend_state()
         self.on_suspend_state(self._current_state)
 
+    def on_enter_state(self, s_name):
+        """
+        Notification that a state has been entered.
+
+        Args:
+            s_name: Name of the state that has been entered.
+
+        This overload records the current state in the top stack frame.
+
+        Derived classes implementing this handler should call
+        super().on_enter_state().
+        """
+        self.active_frame.state = s_name
+        super().on_enter_state(s_name)
+
     def on_suspend_state(self, s_name):
         """
         Notification that a state has been suspended.
@@ -52,41 +143,63 @@ class PushDown(sm.StateMachine):
         """
         pass
 
-    def push(self, new_state):
+    def on_init_frame(self, frame):
+        """
+        Handle a notification that a new stack is being initialized.
+
+        Args:
+            frame: The Frame instance being initialized.
+        """
+        pass
+
+    def _push(self):
         """
         Push the current state onto the stack and enter a new state.
 
         Args:
-            new_state: Initial state of the new stack frame.
+            next_state: Initial state of the new stack frame.
 
         Raises:
-            KeyError if new_state is not a known state name.
+            KeyError if next_state is not a known state name.
 
         """
+
         self._suspend()
-        self.stack.append(self.current_state)
+        self.stack.append(self._frame)
+        self._frame = Frame()
+        self.on_init_frame(self._frame)
+        self._frame.state = None
 
-        self._current_state = new_state
-        self._enter()
-        self._run()
-
-    def pop(self):
+    def _pop(self):
         """
         Pop the last suspended state from the stack and resume it.
         """
-        raise PopState()
 
-    def _do_activity(self):
-        """
-        Run the activity associated with the state.
+        if self.stack_empty: raise StateStackEmpty()
+        self._exit()
+        self._frame = self.stack.pop()
+        self._current_state = self._frame.state
+        self._resume()
 
-        This overload captures and processes PopState exceptions.
+    def _transition(self):
         """
+        Handle the details of transitioning.
+
+        This overload checks for push and pop states before transitioning.
+        """
+        state_dict = super().state_dict(self.current_state)
         try:
-            super()._do_activity()
-        except PopState:
-            if len(self.stack) == 0: raise StateStackEmpty()
-            self._exit()
-            self._current_state = self.stack.pop()
-            self._resume()
+            if state_dict['_push_state']:
+                self._push()
+        except KeyError:
+            pass
+
+        try:
+            if state_dict['_pop_state']:
+                self._pop()
+                return
+        except KeyError:
+            pass
+
+        super()._transition()
 
