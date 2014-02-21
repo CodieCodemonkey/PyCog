@@ -54,9 +54,13 @@ class Graph:
         """
         Add a vertex to the graph.
 
+        Has no effect if the vertex is in the graph.
+
         Args:
             vertex: Vertex to add.
         """
+        if vertex in self._vertices:
+            return
         self._vertices.add(vertex)
         self._pred[vertex] = set()
         self._succ[vertex] = set()

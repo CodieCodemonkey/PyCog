@@ -65,6 +65,17 @@ class TestGraph(unittest.TestCase):
                 expected.remove(s)
             self.assertEqual(len(expected), 0)
 
+    def test_double_add(self):
+        self.graph.clear()
+        self.graph.add('a')
+        self.graph.add('b')
+        self.graph.connect('a', 'b')
+        self.graph.add('c')
+        self.graph.add('b') # double add -- should keep connection to a.
+        self.graph.connect('c', 'b')
+        self.assertTrue('a' in self.graph.pred('b'))
+
+
 class TestGraphWrapper(TestGraph):
     def setUp(self):
         self.graph = GraphWrapper(Graph())
