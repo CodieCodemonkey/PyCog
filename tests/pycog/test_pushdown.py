@@ -55,3 +55,22 @@ class CheckParensTest(unittest.TestCase):
         test = ParenChecker(StringIO("(([] { () })"))
         self.assertFalse(test.run())
 
+from simple_expression import ParseSimpleExpr
+from pycog.graph import Graph, is_tree
+
+class SimpleExprParseTest(unittest.TestCase):
+
+    def test_parse_animals(self):
+        expr1 = """
+            animals ( 
+                canines ( domestic(dogs), 
+                    wild ( wolves, coyotes ) ),
+                felines ( domestic(house_cats), 
+                    wild ( lions, tigers, cheetahs, leopards )))
+        """
+        tree = Graph()
+        parser = ParseSimpleExpr(StringIO(expr1), tree)
+        parser.run()
+        self.assertEqual(str(is_tree(tree)), 'animals')
+        self.assertEqual(tree.num_vertices(), 15)
+
