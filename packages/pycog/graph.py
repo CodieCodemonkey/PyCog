@@ -369,8 +369,6 @@ class BreadthFirstSearch:
             next_rank = set()
 
             for vert in current_rank:
-                if vert == None:
-                    import pudb;pudb.set_trace()
                 for succ_vert in self.graph.succ(vert):
                     if succ_vert not in self.visited:
                         self.visited.add(succ_vert)

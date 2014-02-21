@@ -161,7 +161,6 @@ if __name__ == '__main__':
             else:
                 inp = fsm.stream.getvalue()
                 ptr = ""
-                import pudb;pudb.set_trace()
                 if fsm.open_symbol_pos != None:
                     ptr = ' '*fsm.open_symbol_pos + '^'
                     if fsm.close_symbol_pos != None:
