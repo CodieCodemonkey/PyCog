@@ -18,7 +18,7 @@ class Graph:
     def vertices(self):
         """Return an iterator over the vertices."""
 
-        return self._vertices.__iter__()
+        return iter(self._vertices)
 
     def succ(self, vertex):
         """
@@ -33,7 +33,7 @@ class Graph:
         Raises:
             KeyError
         """
-        return self._succ[vertex].__iter__()
+        return iter(self._succ[vertex])
 
     def pred(self, vertex):
         """
@@ -48,7 +48,7 @@ class Graph:
         Raises:
             KeyError
         """
-        return self._pred[vertex].__iter__()
+        return iter(self._pred[vertex])
 
     def add(self, vertex):
         """
@@ -63,7 +63,7 @@ class Graph:
             return
         self._vertices.add(vertex)
         self._pred[vertex] = set()
-        self._succ[vertex] = set()
+        self._succ[vertex] = list()
 
     def remove(self, vertex):
         """
@@ -97,7 +97,7 @@ class Graph:
         Raises:
             KeyError
         """
-        self._succ[pred].add(succ)
+        self._succ[pred].append(succ)
         self._pred[succ].add(pred)
 
     def disconnect(self, pred, succ):
