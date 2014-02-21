@@ -12,7 +12,7 @@ if package_dir not in sys.path:
 
 import unittest
 
-from pycog.graph import Graph, GraphWrapper
+from pycog.graph import *
 
 class TestGraph(unittest.TestCase):
     def setUp(self):
@@ -161,6 +161,44 @@ class MinGraph:
 class TestGraphWrapperMin(TestGraph):
     def setUp(self):
         self.graph = GraphWrapper(MinGraph())
+
+class TestBFS(unittest.TestCase):
+
+    def setUp(self):
+
+        # Cycle and an isolated vertex.  This graph might look like a tree
+        # because every vertex except the isolated vertex has one predecessor,
+        # (the isolated vertex has no predecessors).
+        self.isolated = Graph()
+        self.isolated.add('isolated')
+        for x in range(5):
+            self.isolated.add(x)
+        for x in range(4):
+            self.isolated.connect(x, x+1)
+        self.isolated.connect(4, 0)
+
+        self.singleton = Graph()
+        self.singleton.add(0)
+
+        self.ring = Graph()
+        for x in range(6):
+            self.ring.add(x)
+        for x in range(5):
+            self.ring.connect(x, x+1)
+        self.ring.connect(5, 0)
+
+        self.tree = Graph()
+        self.tree.add(0)
+        for x in range(1, 32):
+            self.tree.add(x)
+            self.tree.connect(x >> 1, x)
+
+    def test_is_tree(self):
+        self.assertEqual(is_tree(self.tree), 0)
+        self.assertEqual(is_tree(self.singleton), 0)
+        self.assertFalse(is_tree(self.isolated))
+        self.assertFalse(is_tree(self.ring))
+
 
 if __name__ == '__main__':
     unittest.main()

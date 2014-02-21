@@ -4,7 +4,7 @@ class Graph:
     """
     Basic graph class.
 
-    This is an implemenation of the graph protocol defined at
+    This is an implementation of the graph protocol defined at
     http://pycog.codiecodemonkey.com/graph-protocol.html.
     """
 
@@ -332,11 +332,125 @@ class GraphWrapper:
 
     def num_vertices(self):
         """Number of vertices in the graph."""
-        if hasattr(self._graph, 'gp_out_degree'):
+        if hasattr(self._graph, 'gp_num_vertices'):
             return self._graph.gp_num_vertices()
         else:
             cnt = -1
             for cnt, _ in enumerate(self.vertices()):
                 pass
             return cnt + 1
+
+class BreadthFirstSearch:
+    """
+    Implements the breadth-first search algorithm.
+    """
+    def __init__(self, graph, start_vertex, visit_callback = None):
+        if type(graph) is GraphWrapper:
+            self.graph = graph
+        else:
+            self.graph = GraphWrapper(graph)
+        self.root = start_vertex
+        self.visited = None
+        self.visit_callback = visit_callback
+
+    def run(self):
+        """
+        Do the search.
+        """
+        # Clear state from any previous run.
+        self.visited = set()
+
+        self.visited.add(self.root)
+        self.on_visit(self.root)
+        current_rank = set()
+        current_rank.add(self.root)
+        while current_rank:
+            self.on_rank_acquired(current_rank)
+            next_rank = set()
+
+            for vert in current_rank:
+                if vert == None:
+                    import pudb;pudb.set_trace()
+                for succ_vert in self.graph.succ(vert):
+                    if succ_vert not in self.visited:
+                        self.visited.add(succ_vert)
+                        self.on_visit(succ_vert)
+                        next_rank.add(succ_vert)
+
+            current_rank = next_rank
+
+    def on_visit(self, vertex):
+        """
+        Handle notification that a vertex has been visited.
+
+        Args:
+            vertex: The visited vertex.
+
+        Returns:
+            True if the search should continue, False otherwise.
+
+        Any overload of this function must call super().on_visit().
+        """
+        if self.visit_callback:
+            return self.visit_callback(vertex)
+
+        return True
+
+    def on_rank_acquired(self, rank):
+        """
+        Handle notification that a rank has been acquired.
+
+        Args;
+            rank: set of vertices in the rank.
+
+        Any overload of this function must call super().on_rank_acquired().
+        """
+        pass
+
+def is_tree(graph):
+    """
+    Determine if a directed graph is a (rooted) tree and find its root.
+
+    Args:
+        graph: graph to check, must satisfy the graph protocol.
+
+    Returns:
+        None if the graph is not a tree, otherwise the root vertex.
+    """
+    if type(graph) is not GraphWrapper:
+        graph = GraphWrapper(graph)
+
+    # We only use successors, because gp_pred is optional, and it's wrapper
+    # implementation is inefficient.
+    pred_counts = dict.fromkeys(graph.vertices(), 0)
+    vert_count = 0
+    for vert in graph.vertices():
+        vert_count += 1
+        for succ_vert in graph.succ(vert):
+            pred_counts[succ_vert] += 1
+
+    # Necessary condition 1: All nodes have 1 predecessor execpt for the root,
+    # which has no predecessors.
+    root = None
+    for node, count in pred_counts.items():
+        if count == 0:
+            root = node
+            continue
+
+        if count != 1:
+            return None
+
+    if root == None:
+        return None
+
+    # Necessary condition 2: All nodes are connected transitively from the
+    # root.
+    search = BreadthFirstSearch(graph, root)
+    search.run()
+    if len(search.visited) != vert_count:
+        return None
+
+    # BOTH necessary conditions being true is a sufficient condition that the
+    # graph is a tree.
+    return root
 
