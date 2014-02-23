@@ -173,6 +173,33 @@ class TestGraphWrapperMin(TestGraph):
     def setUp(self):
         self.graph = GraphWrapper(MinGraph())
 
+class OrderRecorder:
+    """
+    Class to record visit order.
+    """
+
+    def __init__(self, **kw_args):
+        super().__init__(**kw_args)
+        self.order = []
+
+    def on_visit(self, vertex):
+        self.order.append(vertex)
+
+class BFSOrderRecorder(OrderRecorder, BreadthFirstSearch):
+    """
+    Collects the visitor order of a BreadthFirstSearch
+    """
+    def __init__(self, **kw_args):
+        super().__init__(**kw_args)
+
+class DFSOrderRecorder(OrderRecorder, DepthFirstSearch):
+    """
+    Collects the visitor order of a DepthFirstSearch
+    """
+    def __init__(self, **kw_args):
+        super().__init__(**kw_args)
+
+
 class TestBFS(unittest.TestCase):
 
     def setUp(self):
@@ -200,15 +227,36 @@ class TestBFS(unittest.TestCase):
 
         self.tree = Graph()
         self.tree.add(0)
-        for x in range(1, 32):
+        for x in range(1, 31):
             self.tree.add(x)
-            self.tree.connect(x >> 1, x)
+            self.tree.connect((x-1) >> 1, x)
 
     def test_is_tree(self):
         self.assertEqual(is_tree(self.tree), 0)
         self.assertEqual(is_tree(self.singleton), 0)
         self.assertFalse(is_tree(self.isolated))
         self.assertFalse(is_tree(self.ring))
+
+    def test_visit_order(self):
+        orderRecorder = BFSOrderRecorder(graph=self.tree, start_vertex=0)
+        orderRecorder.run()
+        self.assertEqual(orderRecorder.order, [x for x in range(31)])
+
+class TestDFS(unittest.TestCase):
+    def setUp(self):
+        self.tree = Graph()
+        self.tree.add(0)
+        for x in range(1, 31):
+            self.tree.add(x)
+            self.tree.connect((x-1) >> 1, x)
+
+    def test_visit_order(self):
+        expectedOrder = [0, 1, 3, 7, 15, 16, 8, 17, 18, 4, 9, 19, 20, 10, 21,
+                         22, 2, 5, 11, 23, 24, 12, 25, 26, 6, 13, 27, 28, 14,
+                         29, 30]
+        orderRecorder = DFSOrderRecorder(graph=self.tree, start_vertex=0)
+        orderRecorder.run()
+        self.assertEqual(orderRecorder.order, expectedOrder)
 
 
 if __name__ == '__main__':

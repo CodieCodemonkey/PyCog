@@ -344,11 +344,17 @@ class GraphWrapper:
                 pass
             return cnt + 1
 
-class BreadthFirstSearch:
+class SearchBase:
     """
-    Implements the breadth-first search algorithm.
+    Base class for graph search algorithms.
     """
-    def __init__(self, graph, start_vertex, visit_callback = None):
+    def __init__(self, graph=None, start_vertex=None, visit_callback = None,
+                 **kw_args):
+        super().__init__(**kw_args)
+
+        assert graph != None
+        assert start_vertex != None
+
         if type(graph) is GraphWrapper:
             self.graph = graph
         else:
@@ -357,29 +363,20 @@ class BreadthFirstSearch:
         self.visited = None
         self.visit_callback = visit_callback
 
-    def run(self):
+    def clear(self):
         """
-        Do the search.
+        Clear any state leftover from a previous run.
         """
-        # Clear state from any previous run.
         self.visited = set()
 
-        self.visited.add(self.root)
-        self.on_visit(self.root)
-        current_rank = set()
-        current_rank.add(self.root)
-        while current_rank:
-            self.on_rank_acquired(current_rank)
-            next_rank = set()
-
-            for vert in current_rank:
-                for succ_vert in self.graph.succ(vert):
-                    if succ_vert not in self.visited:
-                        self.visited.add(succ_vert)
-                        self.on_visit(succ_vert)
-                        next_rank.add(succ_vert)
-
-            current_rank = next_rank
+    def _visit(self, vertex):
+        """
+        Handle the details of visiting a vertex.
+        
+        Notifications are sent to derived classes implementing on_visit.
+        """
+        self.visited.add(vertex)
+        self.on_visit(vertex)
 
     def on_visit(self, vertex):
         """
@@ -398,6 +395,35 @@ class BreadthFirstSearch:
 
         return True
 
+class BreadthFirstSearch(SearchBase):
+    """
+    Implements the breadth-first search algorithm.
+    """
+    def __init__(self, **kw_args):
+        super().__init__(**kw_args)
+
+    def run(self):
+        """
+        Do the search.
+        """
+        # Clear state from any previous run.
+        super(BreadthFirstSearch, self).clear()
+
+        super(BreadthFirstSearch, self)._visit(self.root)
+        current_rank = set()
+        current_rank.add(self.root)
+        while current_rank:
+            self.on_rank_acquired(current_rank)
+            next_rank = set()
+
+            for vert in current_rank:
+                for succ_vert in self.graph.succ(vert):
+                    if succ_vert not in self.visited:
+                        super(BreadthFirstSearch, self)._visit(succ_vert)
+                        next_rank.add(succ_vert)
+
+            current_rank = next_rank
+
     def on_rank_acquired(self, rank):
         """
         Handle notification that a rank has been acquired.
@@ -408,6 +434,32 @@ class BreadthFirstSearch:
         Any overload of this function must call super().on_rank_acquired().
         """
         pass
+
+class DepthFirstSearch(SearchBase):
+    """
+    Implements the breadth-first search algorithm.
+    """
+    def __init__(self, **kw_args):
+        super().__init__(**kw_args)
+
+    def run(self):
+        """
+        Do the search.
+        """
+        # Clear state from any previous run.
+        self.clear()
+
+        self._visit_recursive(self.root)
+
+    def _visit_recursive(self, vertex):
+        """
+        Visit a vertex and its children recursively.
+        """
+        super()._visit(vertex)
+        for succ in self.graph.succ(vertex):
+            if succ in self.visited:
+                continue
+            self._visit_recursive(succ)
 
 def is_tree(graph):
     """
@@ -431,12 +483,12 @@ def is_tree(graph):
         for succ_vert in graph.succ(vert):
             pred_counts[succ_vert] += 1
 
-    # Necessary condition 1: All nodes have 1 predecessor execpt for the root,
-    # which has no predecessors.
+    # Necessary condition 1: All vertices have 1 predecessor except for the
+    # root, which has no predecessors.
     root = None
-    for node, count in pred_counts.items():
+    for vert, count in pred_counts.items():
         if count == 0:
-            root = node
+            root = vert
             continue
 
         if count != 1:
@@ -445,9 +497,9 @@ def is_tree(graph):
     if root == None:
         return None
 
-    # Necessary condition 2: All nodes are connected transitively from the
+    # Necessary condition 2: All vertices are connected transitively from the
     # root.
-    search = BreadthFirstSearch(graph, root)
+    search = BreadthFirstSearch(graph=graph, start_vertex=root)
     search.run()
     if len(search.visited) != vert_count:
         return None
