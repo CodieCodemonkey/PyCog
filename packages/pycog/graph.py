@@ -413,8 +413,8 @@ class BreadthFirstSearch(SearchBase):
     """
     Implements the breadth-first search algorithm.
     """
-    def __init__(self, **kw_args):
-        super().__init__(**kw_args)
+    def __init__(self, graph, start_vertex, **kw_args):
+        super().__init__(graph, start_vertex, **kw_args)
 
     def run(self):
         """
@@ -453,8 +453,8 @@ class DepthFirstSearch(SearchBase):
     """
     Implements the breadth-first search algorithm.
     """
-    def __init__(self, **kw_args):
-        super().__init__(**kw_args)
+    def __init__(self, graph, start_vertex, **kw_args):
+        super().__init__(graph, start_vertex, **kw_args)
 
     def run(self):
         """
@@ -507,11 +507,13 @@ class DFSPathTracker:
     """
     Adapter for DepthFirstSearch to track the path from the root to the current
     node.
+
+    This class is only useful if successor iteration is order stable.
     """
 
     def __init__(**kw_args):
         super().__init__(**kw_args)
-        self.__path = [None]
+        self.__path = [-1]
 
     def on_pre_visit(self, vertex):
         """
@@ -522,7 +524,7 @@ class DFSPathTracker:
 
         Any overload of this function must call super().on_pre_visit().
         """
-        self.__path[-1] = vertex
+        self.__path[-1] += 1
         return super().on_visit(self, vertex)
 
     def on_pre_visit_children(self, vertex):
@@ -538,7 +540,7 @@ class DFSPathTracker:
         Any overload of this function must call
         super().on_pre_visit_children().
         """
-        self.__path.append(vertex)
+        self.__path.append(-1)
         super().on_pre_visit_children(vertex)
 
     def on_post_visit_children(self, vertex):
