@@ -7,7 +7,7 @@ if __name__ == '__main__':
 
 from pycog.statemachine import state, transition_always
 from pycog.pushdown import *
-from pycog.trace import trace
+from pycog.utility.trace import trace
 from pycog.exceptions import Reject, Accept, StateStackEmpty
 from pycog.graph import Graph, is_tree
 
