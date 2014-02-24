@@ -375,8 +375,22 @@ class SearchBase:
         
         Notifications are sent to derived classes implementing on_visit.
         """
+        self.on_pre_visit(vertex)
         self.visited.add(vertex)
         self.on_visit(vertex)
+
+    def on_pre_visit(self, vertex):
+        """
+        Handle notification that a vertex is about to be visited.
+
+        Args:
+            vertex: The vertex to be visited.
+
+        Any overload of this function must call super().on_pre_visit().
+        """
+        pass
+
+        return True
 
     def on_visit(self, vertex):
         """
@@ -456,10 +470,98 @@ class DepthFirstSearch(SearchBase):
         Visit a vertex and its children recursively.
         """
         super()._visit(vertex)
+        self.on_pre_visit_children(vertex)
         for succ in self.graph.succ(vertex):
             if succ in self.visited:
                 continue
             self._visit_recursive(succ)
+        self.on_post_visit_children(vertex)
+
+    def on_pre_visit_children(self, vertex):
+        """
+        Handle notification that the children of a vertex are about to be
+        visited.
+
+        Args;
+            vertex: The vertex whose children are about to be visited.
+
+        Any overload of this function must call
+        super().on_pre_visit_children().
+        """
+        pass
+
+    def on_post_visit_children(self, vertex):
+        """
+        Handle notification that the children of a vertex have just been
+        visited.
+
+        Args;
+            vertex: The vertex whose children have been visited.
+
+        Any overload of this function must call
+        super().on_post_visit_children().
+        """
+        pass
+
+class DFSPathTracker:
+    """
+    Adapter for DepthFirstSearch to track the path from the root to the current
+    node.
+    """
+
+    def __init__(**kw_args):
+        super().__init__(**kw_args)
+        self.__path = [None]
+
+    def on_pre_visit(self, vertex):
+        """
+        Handle notification that a vertex is about to be visited.
+
+        Args:
+            vertex: The vertex to be visited.
+
+        Any overload of this function must call super().on_pre_visit().
+        """
+        self.__path[-1] = vertex
+        return super().on_visit(self, vertex)
+
+    def on_pre_visit_children(self, vertex):
+        """
+        Handle notification that the children of a vertex are about to be
+        visited.
+
+        This overload pushes new slot onto the end of the search path.
+
+        Args;
+            vertex: The vertex whose children are about to be visited.
+
+        Any overload of this function must call
+        super().on_pre_visit_children().
+        """
+        self.__path.append(vertex)
+        super().on_pre_visit_children(vertex)
+
+    def on_post_visit_children(self, vertex):
+        """
+        Handle notification that the children of a vertex have just been
+        visited.
+
+        This overload pops the last item from the search path.
+
+        Args;
+            vertex: The vertex whose children have been visited.
+
+        Any overload of this function must call
+        super().on_post_visit_children().
+        """
+        self.__path.pop()
+        super().on_post_visit_children(vertex)
+
+    def get_search_path(self):
+        """
+        Get the search path.
+        """
+        return self.__path
 
 def is_tree(graph):
     """
