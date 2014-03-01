@@ -85,16 +85,25 @@ class Backtracking:
         self.track = Track(max_occ)
 
         if __debug__:
-            if type(self).mro().index(Backtracking) > \
-                    type(self).mro().index(StateMachine):
-                raise AssertionError("class Backtracking modifies class " \
-                                     "StateMachine and must be ahead of it " \
-                                     "in the mro.")
+            mro = type(self).mro()
+            try:
+                fsm_index = mro.index(StateMachine)
+                if mro.index(Backtracking) > fsm_index:
+                    raise ValueError()
+            except ValueError:
+                raise TypeError("Class 'Backtracking' modifies class " \
+                                "'StateMachine', and must precede it in the " \
+                                "mro.")
 
     def on_enter_state(self, s_name):
         """
         Handle on_enter notifications for backtracking.
         """
+        if __debug__:
+            if '_push_state' in self.state_dict(s_name):
+                raise TypeError("Class 'Backtracking' does not yet support "\
+                                "push and pop states.")
+
         self.track.append(self.make_occurrence())
         super().on_enter_state(s_name)
 
