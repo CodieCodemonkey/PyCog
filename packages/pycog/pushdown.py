@@ -83,6 +83,28 @@ class PushDown(sm.StateMachine):
         """
         return len(self.stack) == 0
 
+    def add_state(self, s_name, resume=None, pop=False, **kw_args):
+        """
+        Add a new state or replace an existing one.
+
+        Args:
+            s_name: Name of the state, must be hashable.
+            resume: Specifies that this is a push state that should resume to
+                the specified state.
+            pop: Specifies that this is a pop state.
+            state_data: Data associated with this state.
+            activity: Callable to execute when in the state.  The call
+                signature is activity(statemachine, current_state, state)
+        """
+        if resume:
+            assert not pop, "A state may not be both a push_state and a "\
+                    "pop_state."
+        super().add_state(self, s_name, **kw_args)
+        state_dict = self.state_dict(s_name)
+        state_dict['_push_state'] = resume != None
+        state_dict['_resume_state'] = resume
+        state_dict['_pop_state'] = pop_state
+
     def _resume(self):
         """
         Resume a state suspended by a push.
@@ -202,4 +224,9 @@ class PushDown(sm.StateMachine):
             pass
 
         super()._transition()
+
+    def accept_test(self):
+        if len(self.stack) > 0:
+            return False
+        return super().accept_test()
 
