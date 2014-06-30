@@ -20,7 +20,14 @@ class _StateRecord:
         self.transitions = []
 
         # current_state -> test(sm, exiting, entering)
-        self.transition_tests = dict()
+        self.transition_info = dict()
+
+class _TransitionRecord:
+    """Information about a transition"""
+
+    def __init__(self, test, label=None):
+        self.test = test
+        self.label = label
 
 class state:
     """State decorator
@@ -43,7 +50,7 @@ class state:
     """
 
     def __init__(self, name, state_dict=None, transitions=None,
-                 accepting=False, **kw_args):
+                 accepting=False, label=None,  **kw_args):
         if __debug__:
             if state_dict != None:
                 assert type(state_dict) is dict
@@ -53,13 +60,14 @@ class state:
         if transitions != None:
             for target_s_name, test in transitions:
                 self.record.transitions.append(target_s_name)
-                self.record.transition_tests[target_s_name] = test
+                self.record.transition_info[target_s_name] = \
+                        _TransitionRecord(test, label)
 
     def __call__(self, activity):
         self.record.activity = activity
         return self
 
-    def transition(self, target_s_name):
+    def transition(self, target_s_name, label=None):
         """
         Transition test decorator
 
@@ -85,12 +93,13 @@ class state:
 
             def _trans_test(fsm, cur_state, next_state):
                 """
-                Adaptor for one-parameter transition tests.
+                Adapter for one-parameter transition tests.
                 """
                 return method(fsm)
 
             self.record.transitions.append(target_s_name)
-            self.record.transition_tests[target_s_name] = _trans_test
+            self.record.transition_info[target_s_name] =\
+                    _TransitionRecord(_trans_test, label)
 
             return self
 
@@ -225,7 +234,7 @@ class StateMachine:
         del self._state_records[s_name]
 
     def add_transition(self, exiting, entering,
-                       test=lambda fsm, exiting, entering: True):
+                       test=lambda fsm, exiting, entering: True, label=None):
         """
         Add a transition from one state to another.
 
@@ -233,6 +242,7 @@ class StateMachine:
             exiting: Name of the state for which transition is exiting.
             entering: Name of the state for which transition is entering.
             test: Function to test if the transition is allowed to be made.
+            label: Label for this transtion in diagrams.
 
         test() should return True if the transition should be allowed, or False
         otherwise.
@@ -249,10 +259,10 @@ class StateMachine:
             entering: The state being entered.
         """
         record = self._state_records[exiting]
-        if entering not in record.transition_tests:
+        if entering not in record.transition_info:
             record.transitions.append(entering)
 
-        record.transition_tests[entering] = test
+        record.transition_info[entering] = _TransitionRecord(test, label)
 
     def remove_transition(self, exiting, entering):
         """
@@ -269,7 +279,7 @@ class StateMachine:
         """
         record = self._state_records[exiting]
         record.transition.remove(entering)
-        del record.transition_tests[entering]
+        del record.transition_info[entering]
 
     def on_pre_select_transition(self, s_name, candidate_s_names):
         """
@@ -343,8 +353,9 @@ class StateMachine:
         # Transitioning
         allowed_transitions = []
         for next_trans in record.transitions:
-            if record.transition_tests[next_trans](self, self.current_state,
-                                                   next_trans):
+            if record.transition_info[next_trans].test(self,
+                                                        self.current_state,
+                                                        next_trans):
                 allowed_transitions.append(next_trans)
 
         if not allowed_transitions:
