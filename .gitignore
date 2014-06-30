@@ -5,6 +5,10 @@
 *.py[cod]
 __pycache__
 
+# Graphviz
+*.gv
+*.gv.*
+
 # Compress files
 *.7z
 *.dmg
