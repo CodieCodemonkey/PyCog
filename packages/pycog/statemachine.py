@@ -7,13 +7,14 @@ from pycog.exceptions import Accept, Reject, Backtrack
 class _StateRecord:
     """Information about a state."""
 
-    def __init__(self, name, state_dict, activity=None):
+    def __init__(self, name, state_dict, activity=None, accepting=False):
         self.name = name
         if state_dict == None:
             self.state_dict = dict()
         else:
             self.state_dict = state_dict
         self.activity = activity
+        self.state_dict['_accepting'] = accepting
 
         # Names of available transitions.  Order is important for stability.
         self.transitions = []
@@ -41,13 +42,14 @@ class state:
             ('s', lambda sm, cur_state, trans_state: ...)])
     """
 
-    def __init__(self, name, state_dict=None, transitions=None, **kw_args):
+    def __init__(self, name, state_dict=None, transitions=None,
+                 accepting=False, **kw_args):
         if __debug__:
             if state_dict != None:
                 assert type(state_dict) is dict
 
         super().__init__(**kw_args)
-        self.record = _StateRecord(name, state_dict)
+        self.record = _StateRecord(name, state_dict, accepting=accepting)
         if transitions != None:
             for target_s_name, test in transitions:
                 self.record.transitions.append(target_s_name)
@@ -105,9 +107,11 @@ def transition_always(fsm, cur_state, next_state):
 class StateMachine:
     """State machine framework"""
 
-    def __init__(self, initial, **kw_args):
+    def __init__(self, initial=None, **kw_args):
 
         super().__init__(**kw_args)
+
+        assert initial != None
 
         # Name of the current state, not the state itself.
         self._current_state = initial
@@ -121,6 +125,8 @@ class StateMachine:
             attr = inspect.getattr_static(self, attr_name)
             if isinstance(attr, state):
                 self._state_records[attr.record.name] = attr.record
+
+        self.state_dict(initial)['_initial'] = True
 
     @property
     def current_state(self):
@@ -420,6 +426,9 @@ class StateMachine:
         super().on_reject().
         """
         pass
+
+    def accept_test(self):
+        return True
 
 if __name__ == '__main__':
     import sys
