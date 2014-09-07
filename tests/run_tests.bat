@@ -1,2 +1,2 @@
-python3.3 -m unittest discover -s pycog
+python3.4 -m unittest discover -s pycog
 
