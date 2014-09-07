@@ -7,8 +7,6 @@ def diagram(fsm, stream):
     """
     Diagram a state machine in Graphviz format.
     """
-    import pdb;pdb.set_trace()
-
     stream.write("digraph state\n{\n")
     stream.write('\trankdir="LR";\n')
 
