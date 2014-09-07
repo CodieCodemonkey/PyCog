@@ -6,52 +6,44 @@ if __name__ == "__main__":
     sys.path.append(op.abspath(op.join('..', 'packages')))
 
 from pycog.statemachine import *
+from pycog.inputtape import *
 
-class PsAndQs(StateMachine):
+class PsAndQs(InputTape, StateMachine):
     def __init__(self, stream):
-        super().__init__('p')
+        super().__init__(initial='i', stream=stream)
 
-        self.stream = stream
-        self._symbol = ''
-        self.pos = 0
-        self.advance()
-        self.pos = 0
         self.error_msg = ''
 
-    @property
-    def symbol(self):
-        """Return the current symbol"""
-        return self._symbol
-    def advance(self):
-        """Advance the stream position"""
-        self._symbol = self.stream.read(1)
-        self.pos += 1
-        return self._symbol
-
-    @state('p')
-    def p(self):
-        while self.symbol == 'p':
-            self.advance()
-    @p.transition('q')
-    def p(self):
+    @state('i')
+    def initial(self):
+        pass
+    @initial.transition('p')
+    def p_test(self):
+        return self.symbol == 'p'
+    @initial.transition('q')
+    def q_test(self):
         return self.symbol == 'q'
-    @p.transition('final')
+
+    @state('p', accepting=True)
     def p(self):
-        return self.symbol == ''
+        self.advance()
+    @p.transition('p')
+    def p_test(self):
+        return self.symbol == 'p'
+    @p.transition('q')
+    def q_test(self):
+        return self.symbol == 'q'
 
-    @state('q')
+    @state('q', accepting=True)
     def q(self):
-        while self.symbol == 'q':
-            self.advance()
-    @q.transition('final')
-    def q(self):
-        return self.symbol == ''
-
-    @state('final')
-    def final(self):
-        raise Accept()
+        self.advance()
+    @q.transition('q')
+    def q_test(self):
+        return self.symbol == 'q'
 
     def on_no_transition(self, s_name):
+        if self.accept_test():
+            raise Accept()
         raise Reject("Unexpected character")
 
     def on_reject(self, exc):
@@ -59,9 +51,13 @@ class PsAndQs(StateMachine):
 
         self.error_msg = exc.args[0]
 
-
 if __name__ == '__main__':
     from io import StringIO
+
+    from pycog.utility.diagram import diagram
+
+    with open("ps_and_qs.gv", "w") as gv_file:
+        diagram(PsAndQs(StringIO("pppqqq")), gv_file)
 
     def report(fsm):
         accepted = fsm.run()

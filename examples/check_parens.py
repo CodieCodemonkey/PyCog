@@ -5,6 +5,7 @@ if __name__ == '__main__':
 
 from pycog.statemachine import state, transition_always
 from pycog.pushdown import *
+from pycog.inputtape import *
 from pycog.utility.trace import trace
 from pycog.exceptions import Reject, Accept
 
@@ -23,13 +24,10 @@ symbol_transitions = [(s, symbol_transition_test) for s in container_symbols]
 
 # Uncomment the next line to see a trace of the state machine.
 # @trace
-class ParenChecker(PushDown):
+class ParenChecker(InputTape, PushDown):
 
     def __init__(self, stream):
-        super().__init__(initial='scan')
-
-        self.stream = stream
-        self._symbol = self.stream.read(1)
+        super().__init__(initial='scan', stream=stream)
 
         # Record the symbol position in the stack frame for better error
         # reporting.
@@ -136,22 +134,23 @@ class ParenChecker(PushDown):
     def scan(self):
         while self.symbol and self.symbol not in container_symbols:
             self.advance()
-    @scan.transition('final')
-    def scan(self): return self.symbol == '' and self.stack_empty
 
     def on_no_transition(self, s_name):
+        if self.accept_test():
+            raise Accept()
+
         self.error_msg = "No transition available--unknown cause."
         if not self.stack_empty:
             self.unmatched_open()
 
         super().on_no_transition(s_name)
 
-    @state('final')
-    def final(self):
-        raise Accept()
-
 if __name__ == '__main__':
     from io import StringIO
+
+    from pycog.utility.diagram import diagram
+    with open("check_parens.gv", "w") as gv_file:
+        diagram(ParenChecker(StringIO("()")), gv_file)
 
     def report(fsm):
         try:
