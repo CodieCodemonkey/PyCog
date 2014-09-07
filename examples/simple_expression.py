@@ -8,6 +8,7 @@ if __name__ == '__main__':
 from pycog.statemachine import state, transition_always
 from pycog.pushdown import *
 from pycog.utility.trace import trace
+from pycog.utility.treedump import treedump
 from pycog.exceptions import Reject, Accept, StateStackEmpty
 from pycog.graph import Graph, is_tree
 
@@ -196,76 +197,6 @@ class ParseSimpleExpr(PushDown):
     def final(self):
         raise Accept()
 
-class ExprTreeDump(PushDown):
-    """Display an expression tree"""
-
-    def __init__(self, tree, **kw_args):
-        super().__init__(initial='write', **kw_args)
-
-        self.tree = tree
-        self.root = is_tree(self.tree)
-        if self.root == None:
-            raise TypeError("Graph is not a tree.")
-
-        self.indent = 0
-
-        self.active_frame.node = self.root
-        self.active_frame.children = []
-
-    def on_suspend_state(self, s_name):
-        self.indent += 1
-    def on_resume_state(self, s_name):
-        self.indent -= 1
-
-    @state("write", transitions=[('children', transition_always)])
-    def write(self):
-        indent_str = ""
-        for frame in self.stack:
-            if frame.children:
-                if frame == self.top_frame:
-                    indent_str += "|--"
-                else:
-                    indent_str += "|  "
-            else:
-                if frame == self.top_frame:
-                    indent_str += "`--"
-                else:
-                    indent_str += "   "
-
-        print(indent_str + str(self.active_frame.node))
-
-    @state('next')
-    def next(self):
-        try:
-            self.active_frame.node = self.top_frame.children.pop(0)
-        except IndexError:
-            self.active_frame.node = None
-        except StateStackEmpty:
-            self.active_frame.node = None
-    @next.transition('write')
-    def transition_write(self):
-        return self.active_frame.node != None
-    @next.transition('final')
-    def transition_final(self):
-        return self.stack_empty
-    @next.transition('pop')
-    def transition_pop(self):
-        return True
-
-    @push_state("children", resume='next',
-                transitions=[('next', transition_always)])
-    def children(self):
-        parent = self.active_frame.node
-        self.active_frame.children = [x for x in self.tree.succ(parent)]
-
-    @pop_state("pop")
-    def pop(self):
-        pass
-
-    @state('final')
-    def final(self):
-        pass
-
 if __name__ == '__main__':
     from io import StringIO
 
@@ -281,5 +212,7 @@ if __name__ == '__main__':
     parser = ParseSimpleExpr(StringIO(expr1), tree)
     parser.run()
 
-    ExprTreeDump(tree).run()
+    print("\nExpression:", expr1)
+    print("\nExpression tree:\n")
+    treedump(tree)
 
