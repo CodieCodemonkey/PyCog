@@ -7,7 +7,8 @@ from pycog.exceptions import Accept, Reject, Backtrack
 class _StateRecord:
     """Information about a state."""
 
-    def __init__(self, name, state_dict, activity=None, accepting=False):
+    def __init__(self, name, state_dict, activity=None, accepting=False,
+                 guard=lambda fsm:True):
         self.name = name
         if state_dict == None:
             self.state_dict = dict()
@@ -21,6 +22,9 @@ class _StateRecord:
 
         # current_state -> test(sm, exiting, entering)
         self.transition_info = dict()
+
+        # guard function.  Determines if the state can be entered.
+        self.guard = guard;
 
 class _TransitionRecord:
     """Information about a transition"""
@@ -122,6 +126,15 @@ class state:
 
         return _transition_setter
 
+    def guard(self, method):
+        """
+        Decorator for state guards.
+
+        A state guard should return True if the state may be entered, false
+        otherwise.
+        """
+        self.record.guard = method
+        return self
 
 def transition_always(fsm, cur_state, next_state):
     """
@@ -228,7 +241,8 @@ class StateMachine:
         msg = "Cannot transition from state {st}"
         raise Reject(msg.format(st=self.current_state))
 
-    def add_state(self, s_name, state_data=None, activity=None):
+    def add_state(self, s_name, state_data=None, activity=None,
+                  guard=lambda fsm:True):
         """
         Add a new state or replace an existing one.
 
@@ -238,7 +252,7 @@ class StateMachine:
             activity: Callable to execute when in the state.  The call
                 signature is activity(statemachine, current_state, state)
         """
-        record = _StateRecord(s_name, state_data, activity)
+        record = _StateRecord(s_name, state_data, activity, guard)
         self._state_records[s_name] = record
 
     def remove_state(self, s_name):
@@ -371,9 +385,11 @@ class StateMachine:
         allowed_transitions = []
         for next_trans in record.transitions:
             if record.transition_info[next_trans].test(self,
-                                                        self.current_state,
-                                                        next_trans):
-                allowed_transitions.append(next_trans)
+                                                       self.current_state,
+                                                       next_trans):
+                next_record = self._state_records[next_trans]
+                if next_record.guard(self):
+                    allowed_transitions.append(next_trans)
 
         if not allowed_transitions:
             self.on_no_transition(self.current_state)

@@ -10,17 +10,7 @@ from pycog.utility.trace import trace
 from pycog.exceptions import Reject, Accept
 
 # Symbols that we give special treatment to
-container_symbols = '()[]{}'
-
-# Transition test for states associated with container symbols.
-# Args:
-#     sm: state machine
-#     s: the current active state
-#     t: the target state of the transition
-symbol_transition_test = lambda sm, s, t: sm.symbol == t
-
-# transition test list used to transitions to container symbol states
-symbol_transitions = [(s, symbol_transition_test) for s in container_symbols]
+container_symbols = ['(', ')', '[', ']', '{', '}']
 
 # Uncomment the next line to see a trace of the state machine.
 # @trace
@@ -53,17 +43,6 @@ class ParenChecker(InputTape, PushDown):
         # the position is the location of an open symbol.
         self.active_frame.pos = self.pos
 
-    @property
-    def symbol(self):
-        """Return the current symbol"""
-        return self._symbol
-
-    def advance(self):
-        """Advance the stream position"""
-        self._symbol = self.stream.read(1)
-        self.pos += 1
-        return self._symbol
-
     def unmatched_open(self):
         self.open_symbol_pos = self.top_frame.pos - 1
 
@@ -94,9 +73,12 @@ class ParenChecker(InputTape, PushDown):
 
     @push_state('(', resume='scan', transitions=['scan'])
     def open_paren(self):
-        # Record the open sympol position in the stack frame for error
+        # Record the open symbol position in the stack frame for error
         # reporting
         self.advance()
+    @open_paren.guard
+    def open_paren(self):
+        return self.symbol == '('
 
     @pop_state(')')
     def close_paren(self):
@@ -105,10 +87,16 @@ class ParenChecker(InputTape, PushDown):
             self.unmatched_close()
         if self.top_frame.state != '(':
             self.bad_match()
+    @close_paren.guard
+    def close_paren(self):
+        return self.symbol == ')'
 
     @push_state('[', resume='scan', transitions=['scan'])
     def open_bracket(self):
         self.advance()
+    @open_bracket.guard
+    def open_bracket(self):
+        return self.symbol == '['
 
     @pop_state(']')
     def close_bracket(self):
@@ -117,10 +105,16 @@ class ParenChecker(InputTape, PushDown):
             self.unmatched_close()
         if self.top_frame.state != '[':
             self.bad_match()
+    @close_bracket.guard
+    def close_bracket(self):
+        return self.symbol == ']'
 
     @push_state('{', resume='scan', transitions=['scan'])
     def open_brace(self):
         self.advance()
+    @open_brace.guard
+    def open_brace(self):
+        return self.symbol == '{'
 
     @pop_state('}')
     def close_brace(self):
@@ -129,8 +123,11 @@ class ParenChecker(InputTape, PushDown):
             self.unmatched_close()
         if self.top_frame.state != '{':
             self.bad_match()
+    @close_brace.guard
+    def close_brace(self):
+        return self.symbol == '}'
 
-    @state('scan', transitions=symbol_transitions)
+    @state('scan', transitions=container_symbols)
     def scan(self):
         while self.symbol and self.symbol not in container_symbols:
             self.advance()

@@ -37,62 +37,51 @@ Currently available modules are:
     <td>pushdown</td>
     <td>Implements a pushdown automata.</td>
   </tr>
+  <tr>
+    <td>graph</td>
+    <td>Provides standard graph functionality.</td>
+  </tr>
 </table>
+
+Various utilities are also provided, notably the ability to generate state diagrams at runtime.
 
 ## Examples
 
 Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or more 'q's) looks like this:
 
-    class PsAndQs(StateMachine):
-        def __init__(self, stream):
-            super().__init__('p')
+class PsAndQs(InputTape, StateMachine):
+    def __init__(self, stream):
+        super().__init__(initial='i', stream=stream)
 
-            self.stream = stream
-            self._symbol = ''
-            self.pos = 0
-            self.advance()
-            self.pos = 0
-            self.error_msg = ''
+        self.error_msg = ''
 
-        @property
-        def symbol(self):
-            """Return the current symbol"""
-            return self._symbol
-        def advance(self):
-            """Advance the stream position"""
-            self._symbol = self.stream.read(1)
-            self.pos += 1
-            return self._symbol
+    @state('i', transitions=['p', 'q'])
+    def initial(self):
+        pass
 
-        @state('p')
-        def p(self):
-            while self.symbol == 'p':
-                self.advance()
-        @p.transition('q')
-        def p(self):
-            return self.symbol == 'q'
-        @p.transition('final')
-        def p(self):
-            return self.symbol == ''
+    @state('p', transitions=['p', 'q'], accepting=True)
+    def p(self):
+        self.advance()
+    @p.guard
+    def p(self):
+        return self.symbol == 'p'
 
-        @state('q')
-        def q(self):
-            while self.symbol == 'q':
-                self.advance()
-        @q.transition('final')
-        def q(self):
-            return self.symbol == ''
+    @state('q', transitions=['q'], accepting=True)
+    def q(self):
+        self.advance()
+    @q.guard
+    def q(self):
+        return self.symbol == 'q'
 
-        @state('final')
-        def final(self):
+    def on_no_transition(self, s_name):
+        if self.accept_test():
             raise Accept()
+        raise Reject("Unexpected character")
 
-        def no_transition(self, s_name):
-            raise Reject("Unexpected character")
+    def on_reject(self, exc):
+        super().on_reject(exc)
 
-        def on_reject(self, exc):
-            self.error_msg = exc.args[0]
-
+        self.error_msg = exc.args[0]
 
 Sample run:
 

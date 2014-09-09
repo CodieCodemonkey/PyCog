@@ -14,31 +14,22 @@ class PsAndQs(InputTape, StateMachine):
 
         self.error_msg = ''
 
-    @state('i')
+    @state('i', transitions=['p', 'q'])
     def initial(self):
         pass
-    @initial.transition('p')
-    def p_test(self):
-        return self.symbol == 'p'
-    @initial.transition('q')
-    def q_test(self):
-        return self.symbol == 'q'
 
-    @state('p', accepting=True)
+    @state('p', transitions=['p', 'q'], accepting=True)
     def p(self):
         self.advance()
-    @p.transition('p')
-    def p_test(self):
+    @p.guard
+    def p(self):
         return self.symbol == 'p'
-    @p.transition('q')
-    def q_test(self):
-        return self.symbol == 'q'
 
-    @state('q', accepting=True)
+    @state('q', transitions=['q'], accepting=True)
     def q(self):
         self.advance()
-    @q.transition('q')
-    def q_test(self):
+    @q.guard
+    def q(self):
         return self.symbol == 'q'
 
     def on_no_transition(self, s_name):
