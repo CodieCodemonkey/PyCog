@@ -3,7 +3,7 @@ import sys
 if __name__ == '__main__':
     sys.path.append("../packages")
 
-from pycog.statemachine import state, transition_always
+from pycog.statemachine import state
 from pycog.pushdown import *
 from pycog.inputtape import *
 from pycog.utility.trace import trace
@@ -92,7 +92,7 @@ class ParenChecker(InputTape, PushDown):
                                                pos2=self.close_symbol_pos)
         raise Reject()
 
-    @push_state('(', resume='scan', transitions=[('scan', transition_always)])
+    @push_state('(', resume='scan', transitions=['scan'])
     def open_paren(self):
         # Record the open sympol position in the stack frame for error
         # reporting
@@ -106,7 +106,7 @@ class ParenChecker(InputTape, PushDown):
         if self.top_frame.state != '(':
             self.bad_match()
 
-    @push_state('[', resume='scan', transitions=[('scan', transition_always)])
+    @push_state('[', resume='scan', transitions=['scan'])
     def open_bracket(self):
         self.advance()
 
@@ -118,7 +118,7 @@ class ParenChecker(InputTape, PushDown):
         if self.top_frame.state != '[':
             self.bad_match()
 
-    @push_state('{', resume='scan', transitions=[('scan', transition_always)])
+    @push_state('{', resume='scan', transitions=['scan'])
     def open_brace(self):
         self.advance()
 

@@ -5,7 +5,7 @@ import unicodedata as ud
 if __name__ == '__main__':
     sys.path.append("../packages")
 
-from pycog.statemachine import state, transition_always
+from pycog.statemachine import state
 from pycog.pushdown import *
 from pycog.utility.trace import trace
 from pycog.utility.treedump import treedump
@@ -145,7 +145,7 @@ class ParseSimpleExpr(PushDown):
                                                pos2=self.close_symbol_pos)
         raise Reject()
 
-    @push_state('(', resume='scan', transitions=[('scan', transition_always)])
+    @push_state('(', resume='scan', transitions=['scan'])
     def open_paren(self):
         # Record the open symbol position in the stack frame for error
         # reporting
@@ -159,11 +159,11 @@ class ParseSimpleExpr(PushDown):
         if self.top_frame.state != '(':
             self.bad_match()
 
-    @state(',', transitions = [('scan', transition_always)])
+    @state(',', transitions = ['scan'])
     def comma(self):
         self.advance()
 
-    @state('id', transitions=[('scan', transition_always)])
+    @state('id', transitions=['scan'])
     def id(self):
         id_chars = []
         while self.symbol and is_id_continuation(self.symbol):
@@ -174,7 +174,7 @@ class ParseSimpleExpr(PushDown):
         if not self.stack_empty:
             self.tree.connect(self.top_frame.node, self.node)
 
-    @state('ws', transitions=[('scan', transition_always)])
+    @state('ws', transitions=['scan'])
     def ws(self):
         while self.symbol and is_whitespace(self.symbol):
             self.advance()

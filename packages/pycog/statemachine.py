@@ -58,7 +58,24 @@ class state:
         super().__init__(**kw_args)
         self.record = _StateRecord(name, state_dict, accepting=accepting)
         if transitions != None:
-            for target_s_name, test in transitions:
+            for transition in transitions:
+                if type(transition) is tuple:
+                    if len(transition) == 2:
+                        target_s_name, test = transition
+                    elif len(transition) == 1:
+                        # This allows a way of specifying transition keys that
+                        # are tuples without a test, "(x,y),".  This way (x,y)
+                        # is considered the transition, and the test is
+                        # unspecified.  "(x, y)" would take x as the transition
+                        # and y as the transition test.
+                        target_s_name, = transition
+                        test = transition_always
+                    else:
+                        raise ValueError("Invalid transition specification.")
+                else:
+                    target_s_name = transition
+                    test = transition_always
+
                 self.record.transitions.append(target_s_name)
                 self.record.transition_info[target_s_name] = \
                         _TransitionRecord(test, label)
@@ -234,7 +251,7 @@ class StateMachine:
         del self._state_records[s_name]
 
     def add_transition(self, exiting, entering,
-                       test=lambda fsm, exiting, entering: True, label=None):
+                       test=transition_always, label=None):
         """
         Add a transition from one state to another.
 
