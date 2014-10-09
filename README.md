@@ -3,14 +3,12 @@ PyCog
 
 PyCog is a Python framework for abstract machines of various sorts.
 
-Currently the only developer is me, Ken Hill (codiecodemonkey.com/contact.html).  I'm just getting started on PyCog, so bear with me.
+Currently the only developer is me, Ken Hill (codiecodemonkey.com/contact.html).
 
 These principles are be kept in mind in designing and extending PyCog:
 
-1. Avoid reinvention, especially when quality solutions are already available.  Instead PyCog development will provide adaptors whenever possible so that other packages play well with PyCog and together.
-2. Focus on the aesthetics of client's code.  It should be easy to write clear, elegant code using PyCog.
-3. Separate algorithms from specific data structures where possible.  Instead, PyCog will focus on well-defined and documented "protocols" in the Pythonic sense.
-4. Provide new solutions (instead of adapting existing ones) when necessitated by principles 1-3.
+1. Focus on the aesthetics of client's code.  It should be easy to write clear, elegant code using PyCog.
+2. Avoid reinvention, especially when quality solutions are already available.  Instead PyCog development will provide adaptors whenever possible so that other packages play well with PyCog and together.
 
 ## License
 
@@ -39,7 +37,7 @@ Currently available modules are:
   </tr>
   <tr>
     <td>graph</td>
-    <td>Provides standard graph functionality.</td>
+    <td>Provides standard graph functionality, and adaptors so that PyCog can work with other graph implementations.</td>
   </tr>
 </table>
 
@@ -49,39 +47,39 @@ Various utilities are also provided, notably the ability to generate state diagr
 
 Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or more 'q's) looks like this:
 
-class PsAndQs(InputTape, StateMachine):
-    def __init__(self, stream):
-        super().__init__(initial='i', stream=stream)
+  class PsAndQs(InputTape, StateMachine):
+      def __init__(self, stream):
+          super().__init__(initial='i', stream=stream)
 
-        self.error_msg = ''
+          self.error_msg = ''
 
-    @state('i', transitions=['p', 'q'])
-    def initial(self):
-        pass
+      @state('i', transitions=['p', 'q'])
+      def initial(self):
+          pass
 
-    @state('p', transitions=['p', 'q'], accepting=True)
-    def p(self):
-        self.advance()
-    @p.guard
-    def p(self):
-        return self.symbol == 'p'
+      @state('p', transitions=['p', 'q'], accepting=True)
+      def p(self):
+          self.advance()
+      @p.guard
+      def p(self):
+          return self.symbol == 'p'
 
-    @state('q', transitions=['q'], accepting=True)
-    def q(self):
-        self.advance()
-    @q.guard
-    def q(self):
-        return self.symbol == 'q'
+      @state('q', transitions=['q'], accepting=True)
+      def q(self):
+          self.advance()
+      @q.guard
+      def q(self):
+          return self.symbol == 'q'
 
-    def on_no_transition(self, s_name):
-        if self.accept_test():
-            raise Accept()
-        raise Reject("Unexpected character")
+      def on_no_transition(self, s_name):
+          if self.accept_test():
+              raise Accept()
+          raise Reject("Unexpected character")
 
-    def on_reject(self, exc):
-        super().on_reject(exc)
+      def on_reject(self, exc):
+          super().on_reject(exc)
 
-        self.error_msg = exc.args[0]
+          self.error_msg = exc.args[0]
 
 Sample run:
 
