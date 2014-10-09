@@ -47,39 +47,39 @@ Various utilities are also provided, notably the ability to generate state diagr
 
 Creating a NFA to read the language (p^i)(q^i) (0 or more 'p's followed by 0 or more 'q's) looks like this:
 
-  class PsAndQs(InputTape, StateMachine):
-      def __init__(self, stream):
-          super().__init__(initial='i', stream=stream)
+    class PsAndQs(InputTape, StateMachine):
+        def __init__(self, stream):
+            super().__init__(initial='i', stream=stream)
 
-          self.error_msg = ''
+            self.error_msg = ''
 
-      @state('i', transitions=['p', 'q'])
-      def initial(self):
-          pass
+        @state('i', transitions=['p', 'q'])
+        def initial(self):
+            pass
 
-      @state('p', transitions=['p', 'q'], accepting=True)
-      def p(self):
-          self.advance()
-      @p.guard
-      def p(self):
-          return self.symbol == 'p'
+        @state('p', transitions=['p', 'q'], accepting=True)
+        def p(self):
+            self.advance()
+        @p.guard
+        def p(self):
+            return self.symbol == 'p'
 
-      @state('q', transitions=['q'], accepting=True)
-      def q(self):
-          self.advance()
-      @q.guard
-      def q(self):
-          return self.symbol == 'q'
+        @state('q', transitions=['q'], accepting=True)
+        def q(self):
+            self.advance()
+        @q.guard
+        def q(self):
+            return self.symbol == 'q'
 
-      def on_no_transition(self, s_name):
-          if self.accept_test():
-              raise Accept()
-          raise Reject("Unexpected character")
+        def on_no_transition(self, s_name):
+            if self.accept_test():
+                raise Accept()
+            raise Reject("Unexpected character")
 
-      def on_reject(self, exc):
-          super().on_reject(exc)
+        def on_reject(self, exc):
+            super().on_reject(exc)
 
-          self.error_msg = exc.args[0]
+            self.error_msg = exc.args[0]
 
 Sample run:
 
