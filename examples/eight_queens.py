@@ -8,6 +8,7 @@ if __name__ == "__main__":
 from pycog.statemachine import *
 from pycog.exceptions import *
 from pycog.backtrack import *
+from pycog.utility.diagram import diagram
 
 # Strategy:
 #
@@ -97,7 +98,7 @@ class EightQueens(Backtracking, StateMachine):
             if row < 4: self.add_transition('init', (row, 0))
             self.add_transition((row, 7), 'final')
 
-            for col in range(8):
+            for col in range(7):
                 for next_row in range(8):
                     # Short circuit impossible transitions
                     if next_row == row: continue
@@ -123,7 +124,7 @@ class EightQueens(Backtracking, StateMachine):
         """
         pass
 
-    @state("final")
+    @state("final", accepting=True)
     def final(self):
         """A solution is found, draw the board."""
         raise Accept()
@@ -143,8 +144,8 @@ class EightQueens(Backtracking, StateMachine):
         """Undo the placing of a queen in response to backtracking."""
         super().on_backtrack(occ)
 
-        # Uncomment these two lines to display the dead-ends in the solution
-        # search.
+        # Uncomment these two lines to display the state of the board each time
+        # backtracking occurs.
         # print()
         # self.draw()
 
@@ -163,4 +164,7 @@ if __name__ == "__main__":
     solver = EightQueens()
     solver.run()
     solver.draw()
+
+    with open("eight_queens.gv", "w") as gv_file:
+        diagram(solver, gv_file)
 

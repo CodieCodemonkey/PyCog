@@ -242,7 +242,7 @@ class StateMachine:
         raise Reject(msg.format(st=self.current_state))
 
     def add_state(self, s_name, state_data=None, activity=None,
-                  guard=lambda fsm:True):
+                  guard=lambda fsm:True, accepting=False):
         """
         Add a new state or replace an existing one.
 
@@ -252,7 +252,8 @@ class StateMachine:
             activity: Callable to execute when in the state.  The call
                 signature is activity(statemachine, current_state, state)
         """
-        record = _StateRecord(s_name, state_data, activity, guard)
+        record = _StateRecord(s_name, state_data, activity, guard=guard,
+                              accepting=accepting)
         self._state_records[s_name] = record
 
     def remove_state(self, s_name):
