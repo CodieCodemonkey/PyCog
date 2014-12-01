@@ -485,6 +485,18 @@ class StateMachine:
     def accept_test(self):
         return True
 
+    # Container protocol special methods
+
+    def __len__(self):
+        """Return the number of known states."""
+        return len(self._state_records)
+
+    def __contains__(self, s_name):
+        """Test if a state is in the state machine."""
+
+        return s_name in self._state_records
+
+
 if __name__ == '__main__':
     import sys
     sys.stderr.write("Pycog statemachine.py module is not intended to run "
