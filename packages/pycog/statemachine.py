@@ -150,11 +150,6 @@ class StateMachine:
 
         super().__init__(**kw_args)
 
-        assert initial != None
-
-        # Name of the current state, not the state itself.
-        self._current_state = initial
-        self._initial = initial
 
         # These help get from the name to the state and vice-versa.
         self._state_records = dict()
@@ -165,7 +160,21 @@ class StateMachine:
             if isinstance(attr, state):
                 self._state_records[attr.record.name] = attr.record
 
-        self.state_dict(initial)['_initial'] = True
+        if initial:
+            self.set_initial_state(initial)
+        else:
+            self._current_state = None
+
+    def set_initial_state(self, s_name):
+        """
+        Set the initial state, if not done in the initializer.
+
+        One way or another, the initial state must be done before running the
+        state machine.
+        """
+        self._current_state = s_name
+        self._initial = s_name
+        self.state_dict(s_name)['_initial'] = True
 
     @property
     def current_state(self):
@@ -420,6 +429,7 @@ class StateMachine:
         This is the heart of run(), but without the exception handling.  _run
         can be called recursively, e.g. in pushdown automata.
         """
+        assert self._current_state, "Initial state not set."
         self._enter()
         while True:
             try:
