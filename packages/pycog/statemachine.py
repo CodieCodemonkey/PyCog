@@ -184,6 +184,14 @@ class StateMachine:
     def current_state(self, value):
         self._current_state = value
 
+    @property
+    def accepting(self, s_name=None):
+        if s_name == None:
+            s_name = self.current_state
+        record = self._state_records[s_name]
+        return '_accepting' in record.state_dict and \
+                record.state_dict['_accepting']
+
     def state_dict(self, s_name):
         """
         Access the dictionary associated with the state.
@@ -247,6 +255,8 @@ class StateMachine:
         Derived classes implementing this handler should call
         super().on_no_transition().
         """
+        if self.accepting:
+            raise Accept()
         msg = "Cannot transition from state {st}"
         raise Reject(msg.format(st=self.current_state))
 
@@ -377,6 +387,11 @@ class StateMachine:
         """
         """
         self.on_pre_select_transition(self.current_state, allowed_transitions)
+
+        if len(allowed_transitions) == 0:
+            self.on_no_transition(self.current_state)
+            return
+
         next_state = self.select_transition(self.current_state,
                                             allowed_transitions)
         self.on_transition(self.current_state, next_state)
@@ -400,10 +415,6 @@ class StateMachine:
                 next_record = self._state_records[next_trans]
                 if next_record.guard(self):
                     allowed_transitions.append(next_trans)
-
-        if not allowed_transitions:
-            self.on_no_transition(self.current_state)
-            return
 
         self._exit()
 

@@ -1,7 +1,8 @@
 """Support for back-tracking in state machines"""
 
-from pycog.statemachine import StateMachine
 import itertools
+from pycog.statemachine import StateMachine
+from pycog.exceptions import Accept, Reject, Backtrack
 
 def _track_format(occ):
     """
@@ -75,6 +76,9 @@ class Track:
         chainer = itertools.chain.from_iterable(formatter)
 
         return ''.join(itertools.islice(chainer, 2*len(self.occurrences) - 1))
+
+    def __len__(self):
+        return len(self.occurrences)
 
 class Backtracking:
     """
@@ -152,6 +156,8 @@ class Backtracking:
         super().on_transition(exiting, entering)
 
     def on_no_transition(self, s_name):
+        if self.accepting:
+            raise Accept()
         if self._backtrack():
             return
         else:
