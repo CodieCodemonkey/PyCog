@@ -72,10 +72,18 @@ class Graph:
         Args:
             vertex: Vertex to remove.
         """
+        removed = set()
         for pred in self.pred(vertex):
+            removed.add(pred)
+        for pred in removed:
             self.disconnect(pred, vertex)
+
+        removed = set()
         for succ in self.succ(vertex):
+            removed.add(succ)
+        for succ in removed:
             self.disconnect(vertex, succ)
+
         self._vertices.remove(vertex)
         del self._pred[vertex]
         del self._succ[vertex]
@@ -97,7 +105,9 @@ class Graph:
         Raises:
             KeyError
         """
-        self._succ[pred].append(succ)
+        if succ not in self._succ[pred]:
+            self._succ[pred].append(succ)
+
         self._pred[succ].add(pred)
 
     def disconnect(self, pred, succ):
